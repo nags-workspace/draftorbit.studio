@@ -1,0 +1,24 @@
+/* assets/css/style.css */
+
+/* -- HERO SECTION STYLES -- */
+.hero-section {
+    /* TODO: Replace this with a high-quality background image of your own. */
+    /* You can find free-to-use images on unsplash.com or pexels.com */
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://via.placeholder.com/1920x1080.png?text=3D+Printer+in+Action');
+    background-size: cover;
+    background-position: center;
+    height: 70vh; /* vh stands for viewport height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* -- GENERAL STYLES -- */
+/* Makes the Bootstrap cards feel a bit more modern */
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
