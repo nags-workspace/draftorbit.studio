@@ -20,35 +20,8 @@
 </head>
 <body>
 
-    <!-- ======== NAVBAR ======== -->
-    <nav class="navbar navbar-expand-lg bg-body-tertiary sticky-top">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="index.html">DraftOrbit Studio</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.html">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="services.html">Services</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="portfolio.html">Our Work</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="about.html">About Us</a>
-                    </li>
-                    <li class="nav-item">
-                        <!-- The btn-primary class is already on the button, we can add 'active' to it -->
-                        <a class="btn btn-primary ms-lg-3 active" href="contact.html">Get a Quote</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <!-- ======== NAVBAR PLACEHOLDER ======== -->
+    <div id="navbar-placeholder"></div>
 
     <!-- ======== PAGE HEADER ======== -->
     <header class="py-5 bg-light">
@@ -71,28 +44,65 @@
                         You need to sign up for a service like Formspree.io or Netlify Forms,
                         and then replace the "#" in the action attribute with the URL they provide.
                     -->
-                    <form action="#" method="POST">
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Full Name</label>
-                            <input type="text" class="form-control" id="name" name="name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email Address</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="subject" class="form-label">Subject</label>
-                            <input type="text" class="form-control" id="subject" name="subject" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="message" class="form-label">Project Details</label>
-                            <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
-                        </div>
-                        <div class="alert alert-info small">
-                            <i class="bi bi-info-circle-fill me-2"></i> For project files (.STL, .OBJ, etc.), please email them to us directly at <strong>draftorbitstudio@gmail.com</strong> after submitting this form.
-                        </div>
-                        <button type="submit" class="btn btn-primary">Send Message</button>
-                    </form>
+                    <!-- /contact.html (Updated Form) -->
+<form 
+    action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSezhfRiivNYQrP05Vtnc9fuon2jXdTxDRfsXUYjkRIij3ioKA/formResponse" 
+    method="POST" 
+>
+    <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <!-- Paste the 'name' attribute for the "Name" field -->
+        <input type="text" class="form-control" id="name" name="entry.387857243" required>
+    </div>
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <!-- Paste the 'name' attribute for the "Email" field -->
+        <input type="email" class="form-control" id="email" name="entry.912639244" required>
+    </div>
+    <div class="mb-3">
+        <label for="service" class="form-label">Service Required</label>
+        <!-- Paste the 'name' attribute for the "Service Required" field -->
+        <select class="form-select" id="service" name="entry.100713611" required>
+            <option selected disabled value="">Please select a service...</option>
+            <option>3D Printing</option>
+            <option>Custom CAD Design & Modeling</option>
+            <option>STL/OBJ File Repair</option>
+            <option>Concept-to-Prototype Development</option>
+            <option>Other</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="message" class="form-label">More Details</label>
+        <!-- Paste the 'name' attribute for the "More Details" field -->
+        <textarea class="form-control" id="message" name="entry.1682110506" rows="5" required></textarea>
+    </div>
+    <div class="alert alert-info small">
+        <i class="bi bi-info-circle-fill me-2"></i> For project files (.STL, .OBJ, etc.), please email them to us directly at <strong>draftorbitstudio@gmail.com</strong>.
+    </div>
+    <button type="submit" class="btn btn-primary">Send Message</button>
+</form>
+<div id="form-status" class="mt-4"></div>
+
+                    <script>
+                        document.querySelector('form').addEventListener('submit', function(event) {
+                            event.preventDefault();
+                            const form = event.target;
+                            const status = document.getElementById('form-status');
+                            
+                            fetch(form.action, {
+                                method: 'POST',
+                                body: new FormData(form),
+                                mode: 'no-cors'
+                            })
+                            .then(() => {
+                                status.innerHTML = '<div class="alert alert-success">Thank you! Your message has been sent.</div>';
+                                form.reset();
+                            })
+                            .catch(() => {
+                                status.innerHTML = '<div class="alert alert-danger">Oops! There was a problem sending your message. Please try again later.</div>';
+                            });
+                        });
+                    </script>
                 </div>
 
                 <!-- Column 2: Contact Details -->
