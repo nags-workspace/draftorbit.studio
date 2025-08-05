@@ -22,3 +22,31 @@
 .card:hover {
     transform: translateY(-5px);
 }
+
+
+/*
+=================================
+Footer Styles
+=================================
+*/
+
+.footer-link {
+    color: rgba(255, 255, 255, 0.75); /* A softer white for links */
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+}
+
+.footer-link:hover {
+    color: #ffffff; /* Bright white on hover */
+    text-decoration: underline;
+}
+
+.social-icon i {
+    font-size: 1.4rem; /* Makes icons a bit larger */
+    transition: color 0.2s ease-in-out;
+}
+
+/* Change the hover color to your brand's primary color */
+.social-icon:hover i {
+    color: var(--bs-primary); /* Uses the main blue, or your custom color */
+}
