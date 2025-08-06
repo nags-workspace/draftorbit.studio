@@ -45,24 +45,19 @@
                         and then replace the "#" in the action attribute with the URL they provide.
                     -->
                     <!-- /contact.html (Updated Form) -->
-<form 
-    action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSezhfRiivNYQrP05Vtnc9fuon2jXdTxDRfsXUYjkRIij3ioKA/formResponse" 
-    method="POST" 
->
+                    <!-- Final Form and Script for contact.html -->
+<form id="contact-form">
     <div class="mb-3">
         <label for="name" class="form-label">Name</label>
-        <!-- Paste the 'name' attribute for the "Name" field -->
-        <input type="text" class="form-control" id="name" name="entry.387857243" required>
+        <input type="text" class="form-control" id="name" name="name" required>
     </div>
     <div class="mb-3">
         <label for="email" class="form-label">Email</label>
-        <!-- Paste the 'name' attribute for the "Email" field -->
-        <input type="email" class="form-control" id="email" name="entry.912639244" required>
+        <input type="email" class="form-control" id="email" name="email" required>
     </div>
     <div class="mb-3">
         <label for="service" class="form-label">Service Required</label>
-        <!-- Paste the 'name' attribute for the "Service Required" field -->
-        <select class="form-select" id="service" name="entry.100713611" required>
+        <select class="form-select" id="service" name="service" required>
             <option selected disabled value="">Please select a service...</option>
             <option>3D Printing</option>
             <option>Custom CAD Design & Modeling</option>
@@ -73,36 +68,64 @@
     </div>
     <div class="mb-3">
         <label for="message" class="form-label">More Details</label>
-        <!-- Paste the 'name' attribute for the "More Details" field -->
-        <textarea class="form-control" id="message" name="entry.1682110506" rows="5" required></textarea>
+        <textarea class="form-control" id="message" name="details" rows="4" required></textarea>
     </div>
-    <div class="alert alert-info small">
-        <i class="bi bi-info-circle-fill me-2"></i> For project files (.STL, .OBJ, etc.), please email them to us directly at <strong>draftorbitstudio@gmail.com</strong>.
+    <div class="mb-4">
+        <label for="upload" class="form-label">Upload Project File (.stl, .obj, .zip, etc.)</label>
+        <input class="form-control" type="file" id="upload" name="file" required>
     </div>
-    <button type="submit" class="btn btn-primary">Send Message</button>
+    <button type="submit" id="submit-button" class="btn btn-primary">Send Message</button>
 </form>
+
 <div id="form-status" class="mt-4"></div>
 
-                    <script>
-                        document.querySelector('form').addEventListener('submit', function(event) {
-                            event.preventDefault();
-                            const form = event.target;
-                            const status = document.getElementById('form-status');
-                            
-                            fetch(form.action, {
-                                method: 'POST',
-                                body: new FormData(form),
-                                mode: 'no-cors'
-                            })
-                            .then(() => {
-                                status.innerHTML = '<div class="alert alert-success">Thank you! Your message has been sent.</div>';
-                                form.reset();
-                            })
-                            .catch(() => {
-                                status.innerHTML = '<div class="alert alert-danger">Oops! There was a problem sending your message. Please try again later.</div>';
-                            });
-                        });
-                    </script>
+<script>
+const form = document.getElementById('contact-form');
+const statusDiv = document.getElementById('form-status');
+const submitButton = document.getElementById('submit-button');
+// PASTE THE WEB APP URL YOU COPIED IN STEP 4 HERE
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwI7GL5WoWhmwU32ZlLtBA6AxASzfVbiX-Rc8AVPu1cMJSPadDjZwi3U07INNDSf667/exec";
+
+form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    submitButton.disabled = true;
+    submitButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...`;
+    statusDiv.innerHTML = "";
+    const fileInput = document.getElementById('upload');
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    reader.onloadend = function() {
+        const formData = {
+            name: form.name.value,
+            email: form.email.value,
+            service: form.service.value,
+            details: form.details.value,
+            filename: file.name,
+            file: reader.result 
+        };
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(formData),
+            headers: { 'Content-Type': 'application/json' },
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                statusDiv.innerHTML = '<div class="alert alert-success">Thank you! Your message and file have been sent.</div>';
+                form.reset();
+            } else { throw new Error(data.message || 'Unknown error'); }
+        })
+        .catch(error => {
+            statusDiv.innerHTML = `<div class="alert alert-danger">Oops! There was a problem: ${error.message}</div>`;
+        })
+        .finally(() => {
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Send Message';
+        });
+    };
+    reader.readAsDataURL(file);
+});
+</script>
                 </div>
 
                 <!-- Column 2: Contact Details -->
