@@ -4,34 +4,24 @@
 
 /* ===== General & Body Styles ===== */
 /* ----------------------------------------------------------------- */
-
-/* Adds padding to the top of the body to prevent content
-   from being hidden by the fixed-top navbar. */
 body {
     padding-top: 50px; 
 }
 
-
 /* ===== Header / Navbar ===== */
 /* ----------------------------------------------------------------- */
-
-/* Adds a subtle border below the header */
 .header-border {
     border-bottom: 1px solid #e5e7eb;
 }
-
-/* Adds horizontal spacing between the main navigation links */
 .navbar-nav .nav-item {
     margin-left: 0.75rem;
     margin-right: 0.75rem;
 }
 
-
 /* ===== Hero Section ===== */
 /* ----------------------------------------------------------------- */
-
 .hero-section {
-    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://via.placeholder.com/1920x1080.png?text=3D+Printer+in+Action');
+    background: linear-gradient(rgba(0, 0, 0, 0.585), rgba(0, 0, 0, 0.289)), url('assets/images/hero-bg.jpg');
     background-size: cover;
     background-position: center;
     height: 70vh;
@@ -40,102 +30,126 @@ body {
     justify-content: center;
 }
 
-
 /* ===== Card Components ===== */
 /* ----------------------------------------------------------------- */
-
-/* Adds a subtle hover effect to card elements */
-.card {
-    transition: transform 0.2s ease-in-out;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-}
-
-/* Enable hover and animation for desktop dropdowns */
 @media (min-width: 992px) {
-    /*
-      1. Initial State of the Dropdown (Hidden)
-      We use opacity and visibility instead of "display: none;" to allow for animation.
-    */
     .navbar .dropdown .dropdown-menu {
         display: block;
         opacity: 0;
         visibility: hidden;
-        transform: translateY(10px); /* Start 10px down from its final position */
+        transform: translateY(10px);
         transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
-        pointer-events: none; /* Prevents interaction when hidden */
+        pointer-events: none;
     }
-
-    /*
-      2. Hover State (Visible)
-      When hovering the parent .dropdown, we make the menu visible and animate it.
-    */
     .navbar .dropdown:hover .dropdown-menu {
         opacity: 1;
         visibility: visible;
-        transform: translateY(0); /* Move it up to its final position */
-        pointer-events: auto; /* Allows interaction */
+        transform: translateY(0);
+        pointer-events: auto;
     }
 }
 
 /* ===== Footer ===== */
 /* ----------------------------------------------------------------- */
-
-/* Main footer background */
 .footer-bg {
-    background-color: #111827; /* Very dark gray */
+    background-color: #111827;
 }
-
-/* Footer column titles */
 .footer-heading {
     text-transform: uppercase;
     font-size: 0.8rem;
     font-weight: bold;
-    color: #9ca3af; /* Muted gray */
+    color: #9ca3af;
     letter-spacing: 0.05em;
 }
-
-/* Footer navigation links */
 .footer-link {
-    color: #d1d5db; /* Light gray */
+    color: #d1d5db;
     text-decoration: none;
-    line-height: 2; /* Adds vertical spacing */
+    line-height: 2;
     transition: color 0.2s ease-in-out;
 }
-
 .footer-link:hover {
-    color: #ffffff; /* Bright white on hover */
+    color: #ffffff;
 }
-
-/* Social media icons in the footer */
 .footer-social-icon {
     color: #9ca3af;
     font-size: 1.5rem;
     margin-left: 1.5rem;
     transition: color 0.2s ease-in-out;
 }
-
 .footer-social-icon:hover {
     color: #ffffff;
 }
-
-/* Certification logos in the footer */
 .certification-logo {
     height: 48px;
     opacity: 0.7;
     filter: grayscale(100%) brightness(150%);
 }
-
-/* Improves readability of the copyright text on the dark background */
 .footer-bg .text-muted {
-    color: #6b7280 !important; /* Lighter, more visible gray */
+    color: #6b7280 !important;
 }
-
-/* Adds custom horizontal margin between footer link columns on larger screens */
 @media (min-width: 768px) {
     .footer-links-grid > [class*='col-'] {
-        padding-right: 1rem; /* Adjust this value to increase/decrease space */
+        padding-right: 1rem;
     }
+}
+
+/* =================================================================
+   Animations
+================================================================= */
+
+/* ===== 1. Keyframe Definitions ===== */
+/* ----------------------------------------------------------------- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== 2. Animation Utility Classes ===== */
+/* ----------------------------------------------------------------- */
+.animated {
+  animation-duration: 0.8s;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-in-out;
+}
+.animate-fade-in {
+  animation-name: fadeIn;
+}
+.animate-fade-up {
+  animation-name: fadeUp;
+}
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+.animation-delay-400 {
+  animation-delay: 400ms;
+}
+.animation-delay-600 {
+  animation-delay: 600ms;
+}
+
+/* ===== 3. Enhancing Existing Components ===== */
+/* ----------------------------------------------------------------- */
+.card {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+.btn-primary {
+    transition: transform 0.2s ease-in-out, background-color 0.2s ease;
+}
+.btn-primary:hover {
+    transform: scale(1.05);
 }
