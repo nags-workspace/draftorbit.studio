@@ -1,44 +1,35 @@
-<!-- /navbar.html (Updated with Icons) -->
+<!-- /navbar.html (Corrected and Improved) -->
 <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top header-border">
     <div class="container">
-        <!-- Brand and Logo -->
-        <!-- Logo Image and Brand -->
+        <!-- Logo and Brand -->
         <a class="navbar-brand d-flex align-items-center fw-bold" href="index.html">
             <img src="assets/images/logo.png" alt="DraftOrbit Studio Logo" width="32" height="32" class="me-2">
             DraftOrbit Studio
         </a>
 
-        <!-- Centered Navigation -->
+        <!-- Mobile View Toggler -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Collapsible Wrapper -->
         <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- Centered Navigation Links -->
             <ul class="navbar-nav mx-auto">
                 <li class="nav-item">
-                    <!-- Added icon for Services -->
-                    <a class="nav-link d-flex align-items-center" href="services.html">
-                        <i class="bi bi-stack me-2"></i>
-                        <span>Services</span>
-                    </a>
+                    <a class="nav-link d-flex align-items-center" href="services.html"><i class="bi bi-stack me-2"></i><span>Services</span></a>
                 </li>
                 <li class="nav-item">
-                    <!-- Added icon for Our Work -->
-                    <a class="nav-link d-flex align-items-center" href="portfolio.html">
-                        <i class="bi bi-grid-fill me-2"></i>
-                        <span>Our Work</span>
-                    </a>
+                    <a class="nav-link d-flex align-items-center" href="portfolio.html"><i class="bi bi-grid-fill me-2"></i><span>Our Work</span></a>
                 </li>
                 <li class="nav-item">
-                    <!-- Added icon for About Us -->
-                    <a class="nav-link d-flex align-items-center" href="about.html">
-                        <i class="bi bi-person-fill me-2"></i>
-                        <span>About Us</span>
-                    </a>
+                    <a class="nav-link d-flex align-items-center" href="about.html"><i class="bi bi-person-fill me-2"></i><span>About Us</span></a>
                 </li>
-                <!-- === DROPDOWN FOR RESOURCES === -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdownResources" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-book-fill me-2"></i>
-                        <span>Resources</span>
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-book-fill me-2"></i><span>Resources</span>
                     </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownResources">
+                    <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="page.html?id=3">Blog</a></li>
                         <li><a class="dropdown-item" href="#">Videos</a></li>
                         <li><a class="dropdown-item" href="#">Changelog</a></li>
@@ -47,46 +38,39 @@
                         <li><a class="dropdown-item" href="#">Newsletter</a></li>
                     </ul>
                 </li>
-                <!-- === END OF DROPDOWN === -->
             </ul>
 
-            <!-- Right-aligned Action Buttons -->
+            <!-- Right-Aligned Action Items Group -->
             <div class="d-flex align-items-center">
-                
-                <!-- ===== AUTHENTICATION SECTION ===== -->
-            <div class="d-flex align-items-center ms-lg-auto mt-3 mt-lg-0">
-                
-                <!-- LOGGED OUT VIEW (Visible by default) -->
+                <!-- LOGGED OUT VIEW -->
                 <div id="logged-out-view">
                     <a href="login.html" class="nav-link d-inline-block me-2">Login</a>
                     <a href="signup.html" class="btn btn-primary btn-sm">Sign Up</a>
                 </div>
 
-                <!-- LOGGED IN VIEW (Hidden by default) -->
+                <!-- LOGGED IN VIEW -->
                 <div id="logged-in-view" class="dropdown d-none">
-                    <a href="#" class="nav-link dropdown-toggle" id="navbarDropdownAccount" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Account
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownAccount">
+                    <ul class="dropdown-menu dropdown-menu-end">
                         <li><span class="dropdown-item-text text-muted" id="user-email-display">user@example.com</span></li>
                         <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="account.html">My Account</a></li>
                         <li><a class="dropdown-item" href="#">My Projects</a></li>
                         <li><a class="dropdown-item" href="#" id="logout-button">Logout</a></li>
                     </ul>
                 </div>
 
-            </div>
-            <!-- ===== END OF AUTH SECTION ===== -->
+                <!-- Vertical Divider (visible only when logged in) -->
+                <div class="vr mx-2 d-none d-lg-block" id="auth-divider"></div>
+
+                <!-- Contact Buttons -->
                 <a href="contact.html" class="btn btn-outline-secondary btn-sm me-2">Get a Demo</a>
                 <a href="contact.html" class="btn btn-primary btn-sm d-flex align-items-center">
                     Get a Quote <i class="bi bi-arrow-right ms-2"></i>
                 </a>
             </div>
         </div>
-
-        <!-- Toggler for mobile view -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
     </div>
 </nav>

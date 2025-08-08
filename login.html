@@ -4,16 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - DraftOrbit Studio</title>
-    <!-- Link to your CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-
-    <!-- This div will be populated by main.js -->
     <div id="navbar-placeholder"></div>
 
-    <!-- Main Login Content -->
     <div class="container mt-5 pt-5">
         <div class="row justify-content-center">
             <div class="col-md-6 col-lg-4">
@@ -23,8 +19,9 @@
                         
                         <form id="login-form">
                             <div class="mb-3">
-                                <label for="login-email" class="form-label">Email address</label>
-                                <input type="email" class="form-control" id="login-email" required>
+                                <!-- A single field for email, username, or phone -->
+                                <label for="login-identifier" class="form-label">Email, Username, or Phone</label>
+                                <input type="text" class="form-control" id="login-identifier" required>
                             </div>
                             <div class="mb-3">
                                 <label for="login-password" class="form-label">Password</label>
@@ -35,57 +32,78 @@
                             </div>
                         </form>
 
-                        <!-- Error Message Display -->
                         <div id="login-error" class="alert alert-danger mt-3 d-none" role="alert"></div>
-
-                        <hr>
-                        <p class="text-center mb-0">Don't have an account? <a href="signup.html">Sign Up</a></p>
+                        <p class="text-center mt-3 mb-0">Don't have an account? <a href="signup.html">Sign Up</a></p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- This div will be populated by main.js -->
     <div id="footer-placeholder"></div>
 
-    <!-- SCRIPT LOADING ORDER IS IMPORTANT -->
-    <!-- 1. Load Firebase libraries -->
+    <!-- SCRIPT LOADING ORDER: Add Firestore library -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> <!-- THIS IS NEW -->
 
-    <!-- 2. Load our custom scripts -->
-    <script src="assets/js/auth.js"></script> <!-- Defines initializeAuthUI -->
-    <script src="assets/js/main.js"></script> <!-- Loads navbar, then calls initializeAuthUI -->
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/main.js"></script>
 
-    <!-- 3. Page-specific script for handling the login form -->
+    <!-- Page-specific script for handling the login logic -->
     <script>
         const loginForm = document.getElementById('login-form');
         const loginError = document.getElementById('login-error');
+        const db = firebase.firestore();
 
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault(); // Prevent the form from reloading the page
-
-            // Get user inputs
-            const email = document.getElementById('login-email').value;
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let identifier = document.getElementById('login-identifier').value;
             const password = document.getElementById('login-password').value;
+            let emailToLogin;
 
-            // Use the Firebase auth service (already initialized in auth.js)
-            firebase.auth().signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    // Login successful!
-                    console.log('Login successful:', userCredential.user);
-                    loginError.classList.add('d-none'); // Hide any previous errors
-                    window.location.href = 'index.html'; // Redirect to the home page
-                })
-                .catch((error) => {
-                    // Handle Errors here.
-                    console.error('Login failed:', error);
-                    loginError.textContent = error.message; // Show the error to the user
-                    loginError.classList.remove('d-none');
-                });
+            // Simple check: if the identifier contains "@", treat it as an email.
+            if (identifier.includes('@')) {
+                emailToLogin = identifier;
+            } else {
+                // It's a username or phone number. We need to query Firestore.
+                // We'll search both the 'username' and 'phone' fields.
+                identifier = identifier.toLowerCase(); // Match the lowercase username we saved
+                const usersRef = db.collection('users');
+                const usernameQuery = usersRef.where('username', '==', identifier).get();
+                const phoneQuery = usersRef.where('phone', '==', identifier).get();
+
+                // Wait for both searches to complete
+                const [usernameSnapshot, phoneSnapshot] = await Promise.all([usernameQuery, phoneQuery]);
+
+                if (!usernameSnapshot.empty) {
+                    // We found a match by username
+                    emailToLogin = usernameSnapshot.docs[0].data().email;
+                } else if (!phoneSnapshot.empty) {
+                    // We found a match by phone number
+                    emailToLogin = phoneSnapshot.docs[0].data().email;
+                }
+            }
+
+            if (emailToLogin) {
+                // We found an email, now try to sign in with it.
+                firebase.auth().signInWithEmailAndPassword(emailToLogin, password)
+                    .then((userCredential) => {
+                        console.log('Login successful:', userCredential.user);
+                        loginError.classList.add('d-none');
+                        window.location.href = 'index.html';
+                    })
+                    .catch((error) => {
+                        console.error('Login failed:', error);
+                        loginError.textContent = "Incorrect password or login details."; // Generic error for security
+                        loginError.classList.remove('d-none');
+                    });
+            } else {
+                // We couldn't find the user in the database.
+                loginError.textContent = "User not found. Please check your details.";
+                loginError.classList.remove('d-none');
+            }
         });
     </script>
-
 </body>
 </html>
