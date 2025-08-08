@@ -32,18 +32,51 @@
                         <span>About Us</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <!-- Added icon for Resources -->
-                    <a class="nav-link d-flex align-items-center" href="#">
+                <!-- === DROPDOWN FOR RESOURCES === -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdownResources" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-book-fill me-2"></i>
                         <span>Resources</span>
                     </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownResources">
+                        <li><a class="dropdown-item" href="page.html?id=3">Blog</a></li>
+                        <li><a class="dropdown-item" href="#">Videos</a></li>
+                        <li><a class="dropdown-item" href="#">Changelog</a></li>
+                        <li><a class="dropdown-item" href="#">Status</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">Newsletter</a></li>
+                    </ul>
                 </li>
+                <!-- === END OF DROPDOWN === -->
             </ul>
 
             <!-- Right-aligned Action Buttons -->
             <div class="d-flex align-items-center">
-                <a href="#login" class="nav-link me-3">Login</a>
+                
+                <!-- ===== AUTHENTICATION SECTION ===== -->
+            <div class="d-flex align-items-center ms-lg-auto mt-3 mt-lg-0">
+                
+                <!-- LOGGED OUT VIEW (Visible by default) -->
+                <div id="logged-out-view">
+                    <a href="login.html" class="nav-link d-inline-block me-2">Login</a>
+                    <a href="signup.html" class="btn btn-primary btn-sm">Sign Up</a>
+                </div>
+
+                <!-- LOGGED IN VIEW (Hidden by default) -->
+                <div id="logged-in-view" class="dropdown d-none">
+                    <a href="#" class="nav-link dropdown-toggle" id="navbarDropdownAccount" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Account
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownAccount">
+                        <li><span class="dropdown-item-text text-muted" id="user-email-display">user@example.com</span></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">My Projects</a></li>
+                        <li><a class="dropdown-item" href="#" id="logout-button">Logout</a></li>
+                    </ul>
+                </div>
+
+            </div>
+            <!-- ===== END OF AUTH SECTION ===== -->
                 <a href="contact.html" class="btn btn-outline-secondary btn-sm me-2">Get a Demo</a>
                 <a href="contact.html" class="btn btn-primary btn-sm d-flex align-items-center">
                     Get a Quote <i class="bi bi-arrow-right ms-2"></i>

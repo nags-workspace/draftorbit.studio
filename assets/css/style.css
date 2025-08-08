@@ -53,6 +53,32 @@ body {
     transform: translateY(-5px);
 }
 
+/* Enable hover and animation for desktop dropdowns */
+@media (min-width: 992px) {
+    /*
+      1. Initial State of the Dropdown (Hidden)
+      We use opacity and visibility instead of "display: none;" to allow for animation.
+    */
+    .navbar .dropdown .dropdown-menu {
+        display: block;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(10px); /* Start 10px down from its final position */
+        transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+        pointer-events: none; /* Prevents interaction when hidden */
+    }
+
+    /*
+      2. Hover State (Visible)
+      When hovering the parent .dropdown, we make the menu visible and animate it.
+    */
+    .navbar .dropdown:hover .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0); /* Move it up to its final position */
+        pointer-events: auto; /* Allows interaction */
+    }
+}
 
 /* ===== Footer ===== */
 /* ----------------------------------------------------------------- */
