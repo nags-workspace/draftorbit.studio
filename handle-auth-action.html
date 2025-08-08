@@ -58,8 +58,8 @@
             name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
             var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
             var results = regex.exec(location.search);
-            // The fix is here: using results to get the captured value
-            return results === null ? '' : decodeURIComponent(results.replace(/\+/g, ' '));
+            // THIS IS THE CORRECTED LINE: Using results[1]
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
         };
 
         const mode = getUrlParameter('mode');
@@ -72,11 +72,19 @@
             default:
                 actionContainer.innerHTML = `
                     <h4 class="text-center text-danger">Error</h4>
-                    <p class="text-center text-muted">Invalid action link. Please try again.</p>
+                    <p class="text-center text-muted">Invalid action link or parameters.</p>
                     <div class="text-center mt-3"><a href="index.html">Go to Homepage</a></div>`;
         }
 
         function handlePasswordReset(code) {
+            if (!code) { // Handle cases where code is missing
+                 actionContainer.innerHTML = `
+                    <h4 class="text-center text-danger">Error</h4>
+                    <p class="text-center text-muted">Invalid action link. The required code is missing.</p>
+                    <div class="text-center mt-3"><a href="index.html">Go to Homepage</a></div>`;
+                return;
+            }
+
             firebase.auth().verifyPasswordResetCode(code)
                 .then(email => {
                     actionContainer.innerHTML = `
@@ -106,8 +114,7 @@
                                     </div>`;
                             })
                             .catch(error => {
-                                // THIS IS THE CORRECTED LINE - NO BACKSLASH
-                                actionContainer.innerHTML += `<div class="alert alert-danger mt-3">${error.message}</div>`;
+                                newPasswordForm.innerHTML += \`<div class="alert alert-danger mt-3">${error.message}</div>\`;
                             });
                     });
                 })
@@ -115,8 +122,7 @@
                     actionContainer.innerHTML = `
                         <h4 class="text-center text-danger">Invalid Link</h4>
                         <p class="text-center text-muted">${error.message}. The link may have expired or has already been used.</p>
-                        <div class="text-center mt-3"><a href="forgot-password.html">Request New Link</a></div>
-                    `;
+                        <div class="text-center mt-3"><a href="forgot-password.html">Request New Link</a></div>`;
                 });
         }
     </script>
