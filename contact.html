@@ -4,181 +4,125 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/x-icon" href="assets/images/logo.png">
-    
-    <!-- SEO Meta Tags -->
-    <title>Contact & Quote - DraftOrbit Studio</title>
-    <meta name="description" content="Get a free quote for your 3D printing or CAD design project. Contact DraftOrbit Studio today to get started.">
-
-    <!-- Bootstrap CSS -->
+    <title>Get a Quote - DraftOrbit Studio</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
-    <!-- Your Custom CSS (adjust path) -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-
-    <!-- ======== NAVBAR PLACEHOLDER ======== -->
     <div id="navbar-placeholder"></div>
 
-    <!-- ======== PAGE HEADER ======== -->
-    <header class="py-5 bg-light">
-        <div class="container text-center">
-            <h1 class="display-5 fw-bold">Contact Us</h1>
-            <p class="lead text-muted">Ready to start your project? Fill out the form below or reach out to us directly.</p>
-        </div>
-    </header>
-
-    <!-- ======== CONTACT FORM & DETAILS SECTION ======== -->
-    <section class="py-5">
-        <div class="container">
-            <div class="row">
-                <!-- Column 1: Contact Form -->
-                <div class="col-lg-8">
-                    <h3 class="fw-bold mb-4">Get a Free Quote</h3>
-                    
-                    <!-- 
-                        IMPORTANT: This form will not work on its own.
-                        You need to sign up for a service like Formspree.io or Netlify Forms,
-                        and then replace the "#" in the action attribute with the URL they provide.
-                    -->
-                    <!-- /contact.html (Updated Form) -->
-                    <!-- Final Form and Script for contact.html -->
-<form id="contact-form">
-    <div class="mb-3">
-        <label for="name" class="form-label">Name</label>
-        <input type="text" class="form-control" id="name" name="name" required>
-    </div>
-    <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
-        <input type="email" class="form-control" id="email" name="email" required>
-    </div>
-    <div class="mb-3">
-        <label for="service" class="form-label">Service Required</label>
-        <select class="form-select" id="service" name="service" required>
-            <option selected disabled value="">Please select a service...</option>
-            <option>3D Printing</option>
-            <option>Custom CAD Design & Modeling</option>
-            <option>STL/OBJ File Repair</option>
-            <option>Concept-to-Prototype Development</option>
-            <option>Other</option>
-        </select>
-    </div>
-    <div class="mb-3">
-        <label for="message" class="form-label">More Details</label>
-        <textarea class="form-control" id="message" name="details" rows="4" required></textarea>
-    </div>
-    <div class="mb-4">
-        <label for="upload" class="form-label">Upload Project File (.stl, .obj, .zip, etc.)</label>
-        <input class="form-control" type="file" id="upload" name="file" required>
-    </div>
-    <button type="submit" id="submit-button" class="btn btn-primary">Send Message</button>
-</form>
-
-<div id="form-status" class="mt-4"></div>
-
-<script>
-const form = document.getElementById('contact-form');
-const statusDiv = document.getElementById('form-status');
-const submitButton = document.getElementById('submit-button');
-// PASTE THE WEB APP URL YOU COPIED IN STEP 4 HERE
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwI7GL5WoWhmwU32ZlLtBA6AxASzfVbiX-Rc8AVPu1cMJSPadDjZwi3U07INNDSf667/exec";
-
-form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    submitButton.disabled = true;
-    submitButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...`;
-    statusDiv.innerHTML = "";
-    const fileInput = document.getElementById('upload');
-    const file = fileInput.files[0];
-    const reader = new FileReader();
-    reader.onloadend = function() {
-        const formData = {
-            name: form.name.value,
-            email: form.email.value,
-            service: form.service.value,
-            details: form.details.value,
-            filename: file.name,
-            file: reader.result 
-        };
-        fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify(formData),
-            headers: { 'Content-Type': 'application/json' },
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                statusDiv.innerHTML = '<div class="alert alert-success">Thank you! Your message and file have been sent.</div>';
-                form.reset();
-            } else { throw new Error(data.message || 'Unknown error'); }
-        })
-        .catch(error => {
-            statusDiv.innerHTML = `<div class="alert alert-danger">Oops! There was a problem: ${error.message}</div>`;
-        })
-        .finally(() => {
-            submitButton.disabled = false;
-            submitButton.innerHTML = 'Send Message';
-        });
-    };
-    reader.readAsDataURL(file);
-});
-</script>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center mb-5">
+                    <h1 class="fw-bold">Get a Free Quote</h1>
+                    <p class="lead text-muted">Just fill out your project details below. After you submit, please email your 3D files to us.</p>
                 </div>
 
-                <!-- Column 2: Contact Details -->
-                <div class="col-lg-4 mt-5 mt-lg-0">
-                    <h3 class="fw-bold mb-4">Contact Information</h3>
-                    <div class="d-flex mb-3">
-                        <i class="bi bi-geo-alt-fill fs-4 text-primary me-3"></i>
-                        <div>
-                            <h5 class="mb-0">Location</h5>
-                            <p class="text-muted">Mandya, Karnataka, 571404</p>
-                        </div>
-                    </div>
-                    <div class="d-flex mb-3">
-                        <i class="bi bi-envelope-fill fs-4 text-primary me-3"></i>
-                        <div>
-                            <h5 class="mb-0">Email</h5>
-                            <a href="mailto:draftorbitstudio@gmail.com" class="text-decoration-none text-dark">draftorbitstudio@gmail.com</a>
-                        </div>
-                    </div>
-                     <div class="d-flex mb-3">
-                        <i class="bi bi-instagram fs-4 text-primary me-3"></i>
-                        <div>
-                            <h5 class="mb-0">Instagram</h5>
-                            <a href="#" class="text-decoration-none text-dark">@draftorbit</a> <!-- TODO: Add your Instagram link -->
-                        </div>
-                    </div>
-                    <div class="d-flex">
-                        <i class="bi bi-whatsapp fs-4 text-primary me-3"></i>
-                        <div>
-                            <h5 class="mb-0">WhatsApp</h5>
-                            <p class="text-muted">+91-XXXXXXXXXX</p> <!-- TODO: Add your WhatsApp number -->
-                        </div>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4 p-md-5">
+                        <form id="quote-form">
+                            <div class="mb-3">
+                                <label for="project-name" class="form-label">Project Name</label>
+                                <input type="text" class="form-control" id="project-name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="project-description" class="form-label">Project Description</label>
+                                <textarea class="form-control" id="project-description" rows="4" placeholder="e.g., material requirements, intended use, dimensions..."></textarea>
+                            </div>
+
+                            <!-- New Instructions Section -->
+                            <div class="alert alert-info mt-4">
+                                <h5 class="alert-heading"><i class="bi bi-send-fill me-2"></i>Next Step: Email Your File</h5>
+                                <p>After submitting this form, please email your 3D file(s) (.stl, .obj, etc.) to:</p>
+                                <a href="mailto:quotes@draftorbit.studio" class="fw-bold">quotes@draftorbit.studio</a>
+                            </div>
+
+                            <div id="quote-alert" class="alert mt-3 d-none" role="alert"></div>
+                            
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg" id="submit-quote-button">Submit Project Details</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 
-    <!-- ======== FOOTER PLACEHOLDER ======== -->
     <div id="footer-placeholder"></div>
 
-        <!-- ===== SCRIPTS ===== -->
-    
-    <!-- Firebase SDKs (if not already on the page) -->
+    <!-- Firebase Libraries -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Your Custom Scripts -->
+    <!-- Custom Scripts -->
+    <script src="assets/js/auth.js"></script>
     <script src="assets/js/main.js"></script>
-    <script src="assets/js/auth.js"></script> <!-- This must be present -->
-    <!-- The Master Controller Script -->
+
+    <!-- Page-Specific Logic -->
+    <script>
+        const quoteForm = document.getElementById('quote-form');
+        const submitButton = document.getElementById('submit-quote-button');
+        const quoteAlert = document.getElementById('quote-alert');
+        const db = firebase.firestore();
+
+        quoteForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const user = firebase.auth().currentUser;
+
+            // This block is now complete
+            if (!user) {
+                quoteAlert.className = 'alert alert-danger mt-3';
+                quoteAlert.textContent = 'You must be logged in to submit a quote. Redirecting to login page...';
+                quoteAlert.classList.remove('d-none');
+                
+                // Wait 2 seconds before redirecting so the user can read the message
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                
+                return; // Stop the function here
+            }
+
+            const projectName = document.getElementById('project-name').value;
+            const projectDescription = document.getElementById('project-description').value;
+            
+            submitButton.disabled = true;
+            submitButton.textContent = 'Submitting...';
+
+            // Save project details to Firestore (without any file info)
+            db.collection('projects').add({
+                userId: user.uid,
+                userName: user.email,
+                projectName: projectName,
+                projectDescription: projectDescription,
+                fileUrl: null, // Set to null as file will be emailed
+                fileName: 'Pending Email',
+                status: 'Submitted', // Initial status
+                submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                quoteAlert.className = 'alert alert-success mt-3';
+                quoteAlert.textContent = 'Success! Your project details have been submitted. Please remember to email us your file.';
+                quoteAlert.classList.remove('d-none');
+                quoteForm.reset();
+            })
+            .catch(error => {
+                // This block now has full error handling
+                console.error("Error submitting project:", error);
+                quoteAlert.className = 'alert alert-danger mt-3';
+                quoteAlert.textContent = 'An error occurred while submitting your project. Please try again.';
+                quoteAlert.classList.remove('d-none');
+            })
+            .finally(() => {
+                // This ensures the button is re-enabled whether it succeeds or fails
+                submitButton.disabled = false;
+                submitButton.textContent = 'Submit Project Details';
+            });
+        });
+    </script>
 </body>
 </html>
