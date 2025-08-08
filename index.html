@@ -104,19 +104,6 @@
     <script src="assets/js/main.js"></script>
     <script src="assets/js/auth.js"></script> <!-- This must be present -->
     <!-- The Master Controller Script -->
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        // First, load the footer. It's independent.
-        loadHTML('footer.html', 'footer-placeholder');
-
-        // Then, load the navbar.
-        loadHTML('navbar.html', 'navbar-placeholder')
-          .then(() => {
-            // ONLY after the navbar is successfully loaded,
-            // call the function from auth.js to set up the login view.
-            initializeAuthUI();
-          });
-      });
-    </script>
+    
 </body>
 </html>
