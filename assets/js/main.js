@@ -1,11 +1,12 @@
 // assets/js/main.js
-// This is now the Master Controller for the site.
+// The Master Controller for the website.
 
 /**
  * Fetches HTML content from a file and injects it into a specified element.
- * @param {string} filePath The path to the HTML file to load.
+ * This is our reusable component loader.
+ * @param {string} filePath The path to the HTML file (e.g., 'navbar.html').
  * @param {string} elementId The ID of the element to inject the HTML into.
- * @returns {Promise} A promise that resolves when the HTML is loaded.
+ * @returns {Promise} A promise that resolves when the HTML is successfully loaded.
  */
 function loadHTML(filePath, elementId) {
     return fetch(filePath)
@@ -20,29 +21,29 @@ function loadHTML(filePath, elementId) {
             if (element) {
                 element.innerHTML = data;
             } else {
-                throw new Error(`Element with ID '${elementId}' not found.`);
+                // This error is helpful for debugging new pages.
+                console.warn(`Element with ID '${elementId}' not found in this document.`);
             }
         });
 }
 
-// This function runs when the main HTML document (e.g., index.html) has finished loading.
+// This event fires as soon as the basic HTML of a page is loaded.
 document.addEventListener('DOMContentLoaded', () => {
     
-    // Load the navbar.
-    // The .then() block ensures that initializeAuthUI() is called ONLY AFTER the navbar is successfully loaded.
+    // Load the navbar first. This is an asynchronous operation.
     loadHTML('navbar.html', 'navbar-placeholder')
         .then(() => {
-            console.log("Navbar loaded successfully. Initializing authentication UI...");
-            // Now that the navbar exists in the DOM, we can safely initialize the auth UI.
+            // SUCCESS! The navbar's HTML is now in the DOM.
+            console.log("Navbar loaded. Initializing authentication UI...");
+            
+            // Now, and only now, we can safely call the function to manage the login/logout view.
             initializeAuthUI(); 
         })
         .catch(error => {
-            console.error("Error loading navbar:", error);
+            // If the navbar fails to load, we'll know why.
+            console.error("Critical Error: Could not load navbar.html.", error);
         });
 
-    // Load the footer (optional, but good practice).
-    loadHTML('footer.html', 'footer-placeholder')
-        .catch(error => {
-            console.error("Error loading footer:", error);
-        });
+    // We can also load the footer. This doesn't depend on anything else.
+    loadHTML('footer.html', 'footer-placeholder');
 });

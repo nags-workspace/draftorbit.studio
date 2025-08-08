@@ -1,158 +1,80 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/x-icon" href="assets/images/logo.png">
-    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - DraftOrbit Studio</title>
-    <meta name="description" content="Create an account with DraftOrbit Studio.">
-
-    <!-- Stylesheets -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Link to your CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 
-    <!-- Navbar Placeholder -->
     <div id="navbar-placeholder"></div>
 
-    <!-- Main Sign Up Section -->
-    <main class="py-5">
-        <div class="container">
-            <div class="row justify-content-center">
-                <!-- Main centered column -->
-                <div class="col-md-7 col-lg-5">
-                    <!-- The form card -->
-                    <div class="card shadow-lg border-0">
-                        <div class="card-body p-4 p-md-5">
-                            <div class="text-center mb-4">
-                                <h2 class="fw-bold">Create an Account</h2>
-                                <p class="text-muted">Join DraftOrbit Studio to manage your projects.</p>
+    <div class="container mt-5 pt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title text-center mb-4">Create an Account</h3>
+                        
+                        <form id="signup-form">
+                            <div class="mb-3">
+                                <label for="signup-email" class="form-label">Email address</label>
+                                <input type="email" class="form-control" id="signup-email" required>
                             </div>
+                            <div class="mb-3">
+                                <label for="signup-password" class="form-label">Password (at least 6 characters)</label>
+                                <input type="password" class="form-control" id="signup-password" required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">Create Account</button>
+                            </div>
+                        </form>
 
-                            <!-- Sign Up Form -->
-                            <form action="#">
-                                <!-- Email Input -->
-                                <div class="form-floating mb-3">
-                                    <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
-                                    <label for="email">Email address</label>
-                                </div>
+                        <div id="signup-error" class="alert alert-danger mt-3 d-none" role="alert"></div>
 
-                                <!-- Password Input -->
-                                <div class="form-floating mb-3">
-                                    <input type="password" class="form-control" id="password" placeholder="Password" required>
-                                    <label for="password">Password</label>
-                                </div>
-
-                                <!-- Terms Agreement -->
-                                <div class="form-check mb-4">
-                                    <input class="form-check-input" type="checkbox" value="" id="termsCheck" required>
-                                    <label class="form-check-label small" for="termsCheck">
-                                        I agree to the <a href="page.html?id=1" target="_blank">Terms of Service</a>.
-                                    </label>
-                                </div>
-
-                                <!-- Submit Button -->
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary btn-lg">Sign Up</button>
-                                </div>
-
-                                <hr class="my-4">
-
-                                <!-- Sign In Link -->
-                                <div class="text-center">
-                                    <p class="mb-0">Already have an account? <a href="login.html" class="fw-bold text-decoration-none">Sign in</a></p>
-                                </div>
-                            </form>
-
-                             <!-- Placeholder for status messages from JavaScript -->
-                            <div id="status-message" class="mt-3"></div>
-                        </div>
+                        <hr>
+                        <p class="text-center mb-0">Already have an account? <a href="login.html">Login</a></p>
                     </div>
                 </div>
             </div>
         </div>
-    </main>
-
-    <!-- Footer Placeholder -->
+    </div>
+    
     <div id="footer-placeholder"></div>
 
-    <!-- ===== SCRIPTS ===== -->
-    
-    <!-- Bootstrap & Main JS for Navbar/Footer -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SCRIPT LOADING ORDER IS IMPORTANT -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+    <script src="assets/js/auth.js"></script>
     <script src="assets/js/main.js"></script>
-    
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
-    <!-- Your custom script to initialize Firebase and handle sign-up -->
+    <!-- Page-specific script for handling the signup form -->
     <script>
-      // =======================================================================
-      // IMPORTANT: PASTE YOUR FIREBASE CONFIGURATION OBJECT HERE
-      // You get this from your Firebase Project Settings.
-      // =======================================================================
-      const firebaseConfig = {
-  apiKey: "AIzaSyBEb1sB_AXKGxam3si8m81LPgr3b8HXTvg",
-  authDomain: "draftorbit-web.firebaseapp.com",
-  projectId: "draftorbit-web",
-  storageBucket: "draftorbit-web.firebasestorage.app",
-  messagingSenderId: "687122816959",
-  appId: "1:687122816959:web:a495dc656f84f2e6b24b0a",
-  measurementId: "G-7DTWGJQ4K9"
-};
+        const signupForm = document.getElementById('signup-form');
+        const signupError = document.getElementById('signup-error');
 
-      // Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
-      const auth = firebase.auth();
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
 
-      // --- SIGN UP LOGIC ---
-      const signupForm = document.querySelector('form');
-      const statusDiv = document.getElementById('status-message');
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
 
-      signupForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = signupForm.email.value;
-        const password = signupForm.password.value;
-        
-        // Clear previous messages
-        statusDiv.innerHTML = '';
-
-        // Use the createUser method for signing up
-        auth.createUserWithEmailAndPassword(email, password)
-          .then((userCredential) => {
-            // Signed up successfully
-            statusDiv.innerHTML = `<div class="alert alert-success">Account created! Redirecting you to login...</div>`;
-            
-            // Redirect to the login page after a short delay
-            setTimeout(() => {
-              window.location.href = 'login.html';
-            }, 2000);
-          })
-          .catch((error) => {
-            // Handle Errors here.
-            statusDiv.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
-          });
-      });
-    </script>
-    <script src="assets/js/auth.js" defer></script>
-    <!-- The Master Controller Script -->
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        // First, load the footer. It's independent.
-        loadHTML('footer.html', 'footer-placeholder');
-
-        // Then, load the navbar.
-        loadHTML('navbar.html', 'navbar-placeholder')
-          .then(() => {
-            // ONLY after the navbar is successfully loaded,
-            // call the function from auth.js to set up the login view.
-            initializeAuthUI();
-          });
-      });
+            firebase.auth().createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    console.log('Signup successful:', userCredential.user);
+                    signupError.classList.add('d-none');
+                    window.location.href = 'index.html'; // Redirect to home on success
+                })
+                .catch((error) => {
+                    console.error('Signup failed:', error);
+                    signupError.textContent = error.message;
+                    signupError.classList.remove('d-none');
+                });
+        });
     </script>
 
 </body>
