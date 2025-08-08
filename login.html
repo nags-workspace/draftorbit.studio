@@ -1,30 +1,37 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="assets/images/logo.png">
     <title>Login - DraftOrbit Studio</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body>
-    <div id="navbar-placeholder"></div>
+<body class="bg-light">
 
-    <div class="container mt-5 pt-5">
-        <div class="row justify-content-center">
+    <div class="container">
+        <div class="row justify-content-center align-items-center vh-100">
             <div class="col-md-6 col-lg-4">
-                <div class="card">
-                    <div class="card-body">
+                <div class="text-center mb-4">
+                    <a href="index.html">
+                        <img src="assets/images/logo.png" alt="DraftOrbit Studio Logo" width="48" height="48">
+                    </a>
+                </div>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
                         <h3 class="card-title text-center mb-4">Login to your Account</h3>
                         
                         <form id="login-form">
                             <div class="mb-3">
-                                <!-- A single field for email, username, or phone -->
-                                <label for="login-identifier" class="form-label">Email, Username, or Phone</label>
+                                <label for="login-identifier" class="form-label">Email or Username</label>
                                 <input type="text" class="form-control" id="login-identifier" required>
                             </div>
                             <div class="mb-3">
-                                <label for="login-password" class="form-label">Password</label>
+                                <div class="d-flex justify-content-between">
+                                    <label for="login-password" class="form-label">Password</label>
+                                    <a href="forgot-password.html" class="form-text text-decoration-none">Forgot Password?</a>
+                                </div>
                                 <input type="password" class="form-control" id="login-password" required>
                             </div>
                             <div class="d-grid">
@@ -33,25 +40,38 @@
                         </form>
 
                         <div id="login-error" class="alert alert-danger mt-3 d-none" role="alert"></div>
-                        <p class="text-center mt-3 mb-0">Don't have an account? <a href="signup.html">Sign Up</a></p>
+                        <hr class="my-4">
+                        <p class="text-center mb-0">Don't have an account? <a href="signup.html">Sign Up</a></p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Firebase Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
-    <div id="footer-placeholder"></div>
+    <!-- NOTE: We DO NOT load main.js or auth.js here. This page is standalone. -->
 
-    <!-- SCRIPT LOADING ORDER: Add Firestore library -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> <!-- THIS IS NEW -->
-
-    <script src="assets/js/auth.js"></script>
-    <script src="assets/js/main.js"></script>
-
-    <!-- Page-specific script for handling the login logic -->
     <script>
+        // Firebase Config - Required on standalone auth pages
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEb1sB_AXKGxam3si8m81LPgr3b8HXTvg",
+            authDomain: "draftorbit-web.firebaseapp.com",
+            projectId: "draftorbit-web",
+            storageBucket: "draftorbit-web.firebasestorage.app",
+            messagingSenderId: "687122816959",
+            appId: "1:687122816959:web:a495dc656f84f2e6b24b0a",
+            measurementId: "G-7DTWGJQ4K9"
+        };
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        // --- The rest of your login logic from before ---
         const loginForm = document.getElementById('login-form');
         const loginError = document.getElementById('login-error');
         const db = firebase.firestore();
@@ -61,45 +81,32 @@
             let identifier = document.getElementById('login-identifier').value;
             const password = document.getElementById('login-password').value;
             let emailToLogin;
-
-            // Simple check: if the identifier contains "@", treat it as an email.
+            
             if (identifier.includes('@')) {
                 emailToLogin = identifier;
             } else {
-                // It's a username or phone number. We need to query Firestore.
-                // We'll search both the 'username' and 'phone' fields.
-                identifier = identifier.toLowerCase(); // Match the lowercase username we saved
+                identifier = identifier.toLowerCase();
                 const usersRef = db.collection('users');
-                const usernameQuery = usersRef.where('username', '==', identifier).get();
-                const phoneQuery = usersRef.where('phone', '==', identifier).get();
+                const usernameQuery = usersRef.where('username', '==', identifier).limit(1).get();
+                const phoneQuery = usersRef.where('phone', '==', identifier).limit(1).get();
 
-                // Wait for both searches to complete
                 const [usernameSnapshot, phoneSnapshot] = await Promise.all([usernameQuery, phoneQuery]);
 
                 if (!usernameSnapshot.empty) {
-                    // We found a match by username
                     emailToLogin = usernameSnapshot.docs[0].data().email;
                 } else if (!phoneSnapshot.empty) {
-                    // We found a match by phone number
                     emailToLogin = phoneSnapshot.docs[0].data().email;
                 }
             }
 
             if (emailToLogin) {
-                // We found an email, now try to sign in with it.
                 firebase.auth().signInWithEmailAndPassword(emailToLogin, password)
-                    .then((userCredential) => {
-                        console.log('Login successful:', userCredential.user);
-                        loginError.classList.add('d-none');
-                        window.location.href = 'index.html';
-                    })
-                    .catch((error) => {
-                        console.error('Login failed:', error);
-                        loginError.textContent = "Incorrect password or login details."; // Generic error for security
+                    .then(() => window.location.href = 'index.html')
+                    .catch(() => {
+                        loginError.textContent = "Incorrect password or login details.";
                         loginError.classList.remove('d-none');
                     });
             } else {
-                // We couldn't find the user in the database.
                 loginError.textContent = "User not found. Please check your details.";
                 loginError.classList.remove('d-none');
             }
