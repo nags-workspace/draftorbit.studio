@@ -1,20 +1,50 @@
-/* assets/css/style.css */
+/* =================================================================
+   DraftOrbit Studio - Custom Stylesheet
+================================================================= */
 
-/* -- HERO SECTION STYLES -- */
+/* ===== General & Body Styles ===== */
+/* ----------------------------------------------------------------- */
+
+/* Adds padding to the top of the body to prevent content
+   from being hidden by the fixed-top navbar. */
+body {
+    padding-top: 50px; 
+}
+
+
+/* ===== Header / Navbar ===== */
+/* ----------------------------------------------------------------- */
+
+/* Adds a subtle border below the header */
+.header-border {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Adds horizontal spacing between the main navigation links */
+.navbar-nav .nav-item {
+    margin-left: 0.75rem;
+    margin-right: 0.75rem;
+}
+
+
+/* ===== Hero Section ===== */
+/* ----------------------------------------------------------------- */
+
 .hero-section {
-    /* TODO: Replace this with a high-quality background image of your own. */
-    /* You can find free-to-use images on unsplash.com or pexels.com */
     background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://via.placeholder.com/1920x1080.png?text=3D+Printer+in+Action');
     background-size: cover;
     background-position: center;
-    height: 70vh; /* vh stands for viewport height */
+    height: 70vh;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* -- GENERAL STYLES -- */
-/* Makes the Bootstrap cards feel a bit more modern */
+
+/* ===== Card Components ===== */
+/* ----------------------------------------------------------------- */
+
+/* Adds a subtle hover effect to card elements */
 .card {
     transition: transform 0.2s ease-in-out;
 }
@@ -24,29 +54,62 @@
 }
 
 
-/*
-=================================
-Footer Styles
-=================================
-*/
+/* ===== Footer ===== */
+/* ----------------------------------------------------------------- */
 
+/* Main footer background */
+.footer-bg {
+    background-color: #111827; /* Very dark gray */
+}
+
+/* Footer column titles */
+.footer-heading {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #9ca3af; /* Muted gray */
+    letter-spacing: 0.05em;
+}
+
+/* Footer navigation links */
 .footer-link {
-    color: rgba(255, 255, 255, 0.75); /* A softer white for links */
+    color: #d1d5db; /* Light gray */
     text-decoration: none;
-    transition: all 0.2s ease-in-out;
+    line-height: 2; /* Adds vertical spacing */
+    transition: color 0.2s ease-in-out;
 }
 
 .footer-link:hover {
     color: #ffffff; /* Bright white on hover */
-    text-decoration: underline;
 }
 
-.social-icon i {
-    font-size: 1.4rem; /* Makes icons a bit larger */
+/* Social media icons in the footer */
+.footer-social-icon {
+    color: #9ca3af;
+    font-size: 1.5rem;
+    margin-left: 1.5rem;
     transition: color 0.2s ease-in-out;
 }
 
-/* Change the hover color to your brand's primary color */
-.social-icon:hover i {
-    color: var(--bs-primary); /* Uses the main blue, or your custom color */
+.footer-social-icon:hover {
+    color: #ffffff;
+}
+
+/* Certification logos in the footer */
+.certification-logo {
+    height: 48px;
+    opacity: 0.7;
+    filter: grayscale(100%) brightness(150%);
+}
+
+/* Improves readability of the copyright text on the dark background */
+.footer-bg .text-muted {
+    color: #6b7280 !important; /* Lighter, more visible gray */
+}
+
+/* Adds custom horizontal margin between footer link columns on larger screens */
+@media (min-width: 768px) {
+    .footer-links-grid > [class*='col-'] {
+        padding-right: 1rem; /* Adjust this value to increase/decrease space */
+    }
 }
