@@ -74,7 +74,7 @@
             }
 
             function loadInitialData() {
-                fetch('../portfolio-data.json')
+                fetch('portfolio-data.json')
                     .then(response => response.ok ? response.json() : Promise.reject('File not found'))
                     .then(data => { portfolioData = data; renderPreview(); })
                     .catch(error => { showAlert(error.toString(), 'warning'); renderPreview(); });
