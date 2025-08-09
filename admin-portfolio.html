@@ -13,21 +13,37 @@
         <div class="container"><a class="navbar-brand fw-bold" href="admin.html">DraftOrbit Admin</a><a href="admin.html" class="btn btn-outline-secondary">Back to Dashboard</a></div>
     </nav>
     <main class="container py-5">
-        <h1 class="fw-bold mb-4">Add New Portfolio Item</h1>
-        <div class="alert alert-info">
-            <strong>Instructions:</strong> Fill out all fields, choose an image from your computer, and click "Add & Deploy". The image will be automatically uploaded and your portfolio will be updated.
-        </div>
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-12"><label for="proj-title" class="form-label">Project Title</label><input type="text" id="proj-title" class="form-control"></div>
-                    <div class="col-md-12"><label for="proj-desc" class="form-label">Project Description</label><textarea id="proj-desc" class="form-control" rows="3"></textarea></div>
-                    <div class="col-md-12"><label for="proj-image" class="form-label">Upload Image</label><input type="file" id="proj-image" class="form-control" accept="image/jpeg, image/png, image/webp"></div>
+        <h1 class="fw-bold mb-4">Portfolio Manager</h1>
+        <div id="admin-alert" class="alert d-none"></div>
+        <div class="row g-4">
+            <!-- Add/Edit Form -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-header fw-bold" id="form-header">Add New Portfolio Item</div>
+                    <div class="card-body">
+                        <form id="portfolio-form">
+                            <div class="mb-3"><label for="proj-title" class="form-label">Project Title</label><input type="text" id="proj-title" class="form-control" required></div>
+                            <div class="mb-3"><label for="proj-desc" class="form-label">Description</label><textarea id="proj-desc" class="form-control" rows="3" required></textarea></div>
+                            <div class="mb-3">
+                                <label for="proj-image" class="form-label">Image Filename / Upload</label>
+                                <input type="text" id="proj-image-filename" class="form-control" placeholder="e.g., project-alpha.jpg" required>
+                                <input type="file" id="proj-image-upload" class="form-control mt-2 d-none" accept="image/jpeg, image/png, image/webp">
+                                <small id="image-help-text" class="form-text text-muted">A new image is required when adding an item.</small>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" id="form-action-button" class="btn btn-primary">Add Item & Deploy</button>
+                                <button type="button" id="cancel-edit-button" class="btn btn-secondary d-none">Cancel Edit</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <div class="d-grid mt-4">
-                    <button id="add-and-deploy-button" class="btn btn-success btn-lg">Add & Deploy to Website</button>
+            </div>
+            <!-- Current Portfolio Preview -->
+            <div class="col-lg-7">
+                <h4 class="mb-3">Current Portfolio Items</h4>
+                <div id="portfolio-preview" class="list-group">
+                    <div class="list-group-item text-center"><div class="spinner-border spinner-border-sm"></div></div>
                 </div>
-                <div id="admin-alert" class="alert d-none mt-3"></div>
             </div>
         </div>
     </main>
@@ -35,65 +51,148 @@
         document.addEventListener('DOMContentLoaded', () => {
             const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMnmfB_77LKLb4-XeWUmvCAAdPB9gwWd6kllLXqo2A3s5IRLddoyt_j_CP2mBFRB0/exec";
 
+            const form = document.getElementById('portfolio-form');
+            const formHeader = document.getElementById('form-header');
             const titleInput = document.getElementById('proj-title');
             const descInput = document.getElementById('proj-desc');
-            const imageInput = document.getElementById('proj-image');
-            const deployButton = document.getElementById('add-and-deploy-button');
+            const imageFilenameInput = document.getElementById('proj-image-filename');
+            const imageUploadInput = document.getElementById('proj-image-upload');
+            const imageHelpText = document.getElementById('image-help-text');
+            const actionButton = document.getElementById('form-action-button');
+            const cancelButton = document.getElementById('cancel-edit-button');
+            const previewContainer = document.getElementById('portfolio-preview');
             const adminAlert = document.getElementById('admin-alert');
+
+            let portfolioData = [];
+            let currentlyEditingIndex = null;
 
             function showAlert(message, type = 'info') {
                 adminAlert.textContent = message;
-                adminAlert.className = `alert alert-${type} mt-3`;
+                adminAlert.className = `alert alert-${type}`;
                 adminAlert.classList.remove('d-none');
+                setTimeout(() => adminAlert.classList.add('d-none'), 5000);
             }
 
-            deployButton.addEventListener('click', () => {
-                const file = imageInput.files[0];
-                if (!file || !titleInput.value.trim() || !descInput.value.trim()) {
-                    alert("Please fill out all fields and select an image.");
+            function loadInitialData() {
+                fetch('../portfolio-data.json')
+                    .then(response => response.ok ? response.json() : Promise.reject('File not found'))
+                    .then(data => { portfolioData = data; renderPreview(); })
+                    .catch(error => { showAlert(error.toString(), 'warning'); renderPreview(); });
+            }
+            loadInitialData();
+
+            function renderPreview() {
+                if (portfolioData.length === 0) { previewContainer.innerHTML = '<div class="list-group-item text-center text-muted">No items yet.</div>'; return; }
+                previewContainer.innerHTML = portfolioData.map((item, index) => `
+                    <div class="list-group-item list-group-item-action">
+                        <div class="row g-3 align-items-center">
+                            <div class="col-auto"><img src="../${item.imageUrl}" class="rounded" style="width: 80px; height: 80px; object-fit: cover;" alt="${item.title}"></div>
+                            <div class="col"><h5 class="mb-1">${item.title}</h5><p class="mb-1 small">${item.description}</p><small class="text-muted">${item.imageUrl}</small></div>
+                            <div class="col-auto">
+                                <button class="btn btn-sm btn-outline-primary mb-1" onclick="editItem(${index})"><i class="bi bi-pencil-fill"></i></button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteItem(${index})"><i class="bi bi-trash-fill"></i></button>
+                            </div>
+                        </div>
+                    </div>`).join('');
+            }
+
+            function resetForm() {
+                form.reset();
+                currentlyEditingIndex = null;
+                formHeader.textContent = "Add New Portfolio Item";
+                actionButton.textContent = "Add & Deploy Item";
+                actionButton.classList.replace('btn-warning', 'btn-primary');
+                cancelButton.classList.add('d-none');
+                imageFilenameInput.classList.add('d-none');
+                imageUploadInput.classList.remove('d-none');
+                imageUploadInput.required = true;
+                imageHelpText.textContent = "A new image is required when adding an item.";
+            }
+            resetForm(); // Call on load to set initial state
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const file = imageUploadInput.files[0];
+                const isEditing = currentlyEditingIndex !== null;
+                
+                if (!titleInput.value.trim() || !descInput.value.trim() || (!isEditing && !file)) {
+                    alert("Please fill out all fields. An image is required when adding a new item.");
                     return;
                 }
 
-                deployButton.disabled = true;
-                deployButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading & Deploying...';
+                actionButton.disabled = true;
+                actionButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Deploying...';
                 
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    const fileData = {
-                        fileName: file.name.replace(/\s/g, '-'), // Sanitize filename
-                        mimeType: file.type,
-                        file: event.target.result, // This is the Base64 encoded file data
+                    const payload = {
+                        action: isEditing ? 'edit' : 'add',
+                        index: currentlyEditingIndex,
                         title: titleInput.value.trim(),
-                        description: descInput.value.trim()
+                        description: descInput.value.trim(),
+                        ...(file && { fileName: file.name, mimeType: file.type, file: event.target.result }),
+                        ...(!file && isEditing && { imageUrl: portfolioData[currentlyEditingIndex].imageUrl })
                     };
-                    
-                    fetch(APPS_SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify(fileData)
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.result === 'success') {
-                            showAlert("Deployment successful! Your portfolio will be live in 1-2 minutes.", 'success');
-                            titleInput.value = '';
-                            descInput.value = '';
-                            imageInput.value = '';
-                        } else {
-                            throw new Error(data.message || 'Unknown error from the deployment script.');
-                        }
+
+                    fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+                        .then(res => res.json()).then(data => {
+                            if (data.result !== 'success') throw new Error(data.message);
+                            showAlert(`Item ${isEditing ? 'updated' : 'added'} successfully! Portfolio is updating.`, 'success');
+                            portfolioData = data.data;
+                            renderPreview();
+                            resetForm();
+                        })
+                        .catch(error => showAlert(`Deployment failed: ${error.message}`, 'danger'))
+                        .finally(() => { actionButton.disabled = false; resetForm(); });
+                };
+
+                if (file) {
+                    reader.readAsDataURL(file);
+                } else {
+                    reader.onload();
+                }
+            });
+
+            window.editItem = function(index) {
+                currentlyEditingIndex = index;
+                const item = portfolioData[index];
+                
+                titleInput.value = item.title;
+                descInput.value = item.description;
+                
+                imageUploadInput.classList.add('d-none'); // Hide the file upload
+                imageUploadInput.required = false;
+                imageFilenameInput.classList.remove('d-none'); // Show the filename text input
+                imageFilenameInput.value = item.imageUrl; // Show the full path for reference
+                imageFilenameInput.disabled = true; // Make it non-editable
+                imageHelpText.textContent = "Image cannot be changed during an edit. To change an image, delete and re-add the item.";
+
+                formHeader.textContent = "Edit Portfolio Item";
+                actionButton.textContent = "Save Changes & Deploy";
+                actionButton.classList.replace('btn-primary', 'btn-warning');
+                cancelButton.classList.remove('d-none');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+            window.deleteItem = function(index) {
+                if (!confirm(`Are you sure you want to delete "${portfolioData[index].title}"? This is a live deployment.`)) return;
+                const originalHtml = previewContainer.innerHTML;
+                previewContainer.innerHTML = '<div class="list-group-item text-center"><div class="spinner-border spinner-border-sm"></div> Deleting...</div>';
+
+                fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', index: index }) })
+                    .then(res => res.json()).then(data => {
+                        if (data.result !== 'success') throw new Error(data.message);
+                        showAlert("Item deleted successfully! Portfolio is updating.", 'warning');
+                        portfolioData = data.data;
+                        renderPreview();
                     })
                     .catch(error => {
-                        console.error("Error deploying:", error);
-                        showAlert(`Deployment failed: ${error.message}`, 'danger');
-                    })
-                    .finally(() => {
-                        deployButton.disabled = false;
-                        deployButton.innerHTML = 'Add & Deploy to Website';
+                        showAlert(`Deletion failed: ${error.message}`, 'danger');
+                        previewContainer.innerHTML = originalHtml;
                     });
-                };
-                
-                reader.readAsDataURL(file); // Read the file as a Base64 string
-            });
+            };
+            
+            cancelButton.addEventListener('click', resetForm);
         });
     </script>
 </body>
