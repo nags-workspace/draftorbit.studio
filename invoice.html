@@ -86,7 +86,7 @@
                     const invoiceHtml = `
                         <div class="p-4 p-md-5 invoice-header">
                             <div class="row align-items-center">
-                                <div class="col-6"><img src="assets/images/logo.png" style="width: 48px;"><h4 class="fw-bold mt-2 mb-0">DraftOrbit Studio</h4></div>
+                                <div class="col-6"><img src="assets/images/logo.png" style="width: 48px;"><h4 class="fw-bold mt-2 mb-0">DraftOrbit Studio</h4><p class="mb-0 fw-bold mt-2">GSTIN: XXXX1234567889</p></div>
                                 <div class="col-6 text-end"><h2 class="fw-bolder mb-1">INVOICE</h2><p class="text-muted mb-0">#${projectId.substring(0, 8).toUpperCase()}</p></div>
                             </div>
                         </div>
@@ -95,16 +95,16 @@
                                 <div class="col-md-6">
                                     <h6 class="text-muted">FROM:</h6>
                                     <p class="mb-0 fw-bold">DraftOrbit Studio</p>
-                                    <p class="mb-0">[Your Address]</p>
-                                    <p class="mb-0">[Your City, Pincode]</p>
-                                    <p class="mb-0">[Your Email]</p>
+                                    <p class="mb-0">Kattedoddi, B Gowdagere post</p>
+                                    <p class="mb-0">Mandya - 571404</p>
+                                    <p class="mb-0"><strong>Email:</strong> admin@draftorbit.studio</p>
                                 </div>
                                 <div class="col-md-6 text-md-end">
                                     <h6 class="text-muted">BILL TO:</h6>
                                     <p class="mb-0 fw-bold">${billing.fullName || project.userName}</p>
                                     <p class="mb-0">${billing.addressLine1 || ''}</p>
                                     <p class="mb-0">${billing.addressLine2 || ''}</p>
-                                    <p class="mb-0">${billing.city || ''} ${billing.state || ''} ${billing.pincode || ''}</p>
+                                    <p class="mb-0">${billing.city || ''}, ${billing.state || ''} <br>${billing.pincode || ''}</p>
                                     <p class="mb-0"><strong>Phone:</strong> ${billing.phone || 'N/A'}</p>
                                     <h6 class="text-muted mt-3">DATE:</h6><p class="mb-0">${formattedDate}</p>
                                 </div>
