@@ -1,6 +1,11 @@
 [
   {
     "imageUrl": "assets/images/portfolio/replacement-gear.jpg",
+    "title": "dchj",
+    "description": "njc"
+  },
+  {
+    "imageUrl": "assets/images/portfolio/replacement-gear.jpg",
     "title": "Mechanical Parts & Repair",
     "description": "An essential piece of workshop machinery was out of commission due to a broken, discontinued plastic gear. We meticulously measured the original part, reverse-engineered it in CAD, and printed a high-strength replacement in durable ABS."
   },
