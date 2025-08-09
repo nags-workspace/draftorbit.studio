@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/x-icon" href="assets/images/logo.png">
-    <title>Get a Quote - DraftOrbit Studio</title>
+    <title>Instant Quote - DraftOrbit Studio</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
@@ -16,35 +16,43 @@
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="text-center mb-5">
-                    <h1 class="fw-bold">Get a Free Quote</h1>
-                    <p class="lead text-muted">Just fill out your project details below. After you submit, please email your 3D files to us.</p>
+                    <h1 class="fw-bold">Instant 3D Printing Quote</h1>
+                    <p class="lead text-muted">Upload your model, choose your material, and get an instant price estimate.</p>
                 </div>
 
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4 p-md-5">
-                        <form id="quote-form">
-                            <div class="mb-3">
-                                <label for="project-name" class="form-label">Project Name</label>
-                                <input type="text" class="form-control" id="project-name" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="project-description" class="form-label">Project Description</label>
-                                <textarea class="form-control" id="project-description" rows="4" placeholder="e.g., material requirements, intended use, dimensions..."></textarea>
-                            </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>1. Name Your Project</h5>
+                                <div class="mb-3">
+                                    <label for="project-name" class="form-label">A unique name for your project</label>
+                                    <input type="text" class="form-control" id="project-name" required>
+                                </div>
+                                
+                                <h5 class="mt-4">2. Upload Your File</h5>
+                                <div class="mb-3">
+                                    <label for="file-upload" class="form-label">Supports .stl files</label>
+                                    <input class="form-control" type="file" id="file-upload" accept=".stl">
+                                </div>
 
-                            <!-- New Instructions Section -->
-                            <div class="alert alert-info mt-4">
-                                <h5 class="alert-heading"><i class="bi bi-send-fill me-2"></i>Next Step: Email Your File</h5>
-                                <p>After submitting this form, please email your 3D file(s) (.stl, .obj, etc.) to:</p>
-                                <a href="mailto:quotes@draftorbit.studio" class="fw-bold">quotes@draftorbit.studio</a>
+                                <h5 class="mt-4">3. Choose Your Material</h5>
+                                <div class="mb-3">
+                                    <label for="material-select" class="form-label">Material</label>
+                                    <select class="form-select" id="material-select">
+                                        <option value="pla" selected>PLA</option>
+                                        <option value="petg">PETG</option>
+                                        <option value="abs">ABS</option>
+                                    </select>
+                                </div>
                             </div>
-
-                            <div id="quote-alert" class="alert mt-3 d-none" role="alert"></div>
-                            
-                            <div class="d-grid mt-4">
-                                <button type="submit" class="btn btn-primary btn-lg" id="submit-quote-button">Submit Project Details</button>
+                            <div class="col-md-6 border-start">
+                                <h5 class="text-center">4. Your Instant Quote</h5>
+                                <div id="quote-results" class="text-center mt-4">
+                                    <p class="text-muted">Fill out the details to see your price.</p>
+                                </div>
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -53,75 +61,143 @@
 
     <div id="footer-placeholder"></div>
 
-    <!-- Firebase Libraries -->
+    <!-- ===== SCRIPTS ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.124.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.124.0/examples/js/loaders/STLLoader.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
-    <!-- Custom Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script> <!-- Required for saving orders -->
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/main.js"></script>
-
-    <!-- Page-Specific Logic -->
     <script>
-        const quoteForm = document.getElementById('quote-form');
-        const submitButton = document.getElementById('submit-quote-button');
-        const quoteAlert = document.getElementById('quote-alert');
-        const db = firebase.firestore();
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileUpload = document.getElementById('file-upload');
+            const materialSelect = document.getElementById('material-select');
+            const quoteResultsDiv = document.getElementById('quote-results');
+            const projectNameInput = document.getElementById('project-name');
 
-        quoteForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const user = firebase.auth().currentUser;
+            const db = firebase.firestore();
+            let currentQuoteData = null; // Holds the details of the most recent quote
 
-            // This block is now complete
-            if (!user) {
-                quoteAlert.className = 'alert alert-danger mt-3';
-                quoteAlert.textContent = 'You must be logged in to submit a quote. Redirecting to login page...';
-                quoteAlert.classList.remove('d-none');
-                
-                // Wait 2 seconds before redirecting so the user can read the message
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 2000);
-                
-                return; // Stop the function here
+            const pricing = {
+                pricePerCubicCm: { pla: 1.25, petg: 1.50, abs: 1.40 },
+                baseFee: 5.00
+            };
+
+            function calculatePrice(volumeCm3, materialType) {
+                const materialCost = volumeCm3 * pricing.pricePerCubicCm[materialType];
+                const totalPrice = materialCost + pricing.baseFee;
+                return { totalPrice: totalPrice.toFixed(2), volume: Math.round(volumeCm3 * 100) / 100 };
             }
 
-            const projectName = document.getElementById('project-name').value;
-            const projectDescription = document.getElementById('project-description').value;
-            
-            submitButton.disabled = true;
-            submitButton.textContent = 'Submitting...';
+            // New function to save the accepted quote as an order
+            function saveOrderToFirestore() {
+                const user = firebase.auth().currentUser;
 
-            // Save project details to Firestore (without any file info)
-            db.collection('projects').add({
-                userId: user.uid,
-                userName: user.email,
-                projectName: projectName,
-                projectDescription: projectDescription,
-                fileUrl: null, // Set to null as file will be emailed
-                fileName: 'Pending Email',
-                status: 'Submitted', // Initial status
-                submittedAt: firebase.firestore.FieldValue.serverTimestamp()
-            })
-            .then(() => {
-                quoteAlert.className = 'alert alert-success mt-3';
-                quoteAlert.textContent = 'Success! Your project details have been submitted. Please remember to email us your file.';
-                quoteAlert.classList.remove('d-none');
-                quoteForm.reset();
-            })
-            .catch(error => {
-                // This block now has full error handling
-                console.error("Error submitting project:", error);
-                quoteAlert.className = 'alert alert-danger mt-3';
-                quoteAlert.textContent = 'An error occurred while submitting your project. Please try again.';
-                quoteAlert.classList.remove('d-none');
-            })
-            .finally(() => {
-                // This ensures the button is re-enabled whether it succeeds or fails
-                submitButton.disabled = false;
-                submitButton.textContent = 'Submit Project Details';
-            });
+                if (!user) {
+                    alert("Please log in to place an order.");
+                    window.location.href = 'login.html';
+                    return;
+                }
+                if (!currentQuoteData) {
+                    alert("Error: No quote data available to save. Please calculate a quote first.");
+                    return;
+                }
+                if (!projectNameInput.value.trim()) {
+                    alert("Please enter a name for your project.");
+                    projectNameInput.focus();
+                    return;
+                }
+
+                const orderButton = document.getElementById('proceed-to-order-button');
+                orderButton.disabled = true;
+                orderButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Placing Order...';
+
+                const projectData = {
+                    userId: user.uid,
+                    userName: user.email,
+                    projectName: projectNameInput.value.trim(),
+                    fileName: currentQuoteData.fileName,
+                    fileUrl: null, // File will be emailed manually by the user
+                    projectDescription: `Material: ${currentQuoteData.material.toUpperCase()}, Volume: ${currentQuoteData.volume} cm³, Dimensions: ${currentQuoteData.dimensions}`,
+                    status: 'Quote Accepted', // The initial status for a new order
+                    quotedPrice: parseFloat(currentQuoteData.price),
+                    submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                db.collection('projects').add(projectData)
+                    .then(() => {
+                        alert("Your order has been placed! You will now be redirected to your projects page.");
+                        window.location.href = 'my-projects.html';
+                    })
+                    .catch(error => {
+                        console.error("Error saving order: ", error);
+                        alert("An error occurred while placing your order. Please try again.");
+                        orderButton.disabled = false;
+                        orderButton.textContent = 'Proceed to Order';
+                    });
+            }
+
+            function runQuoteCalculation() {
+                const file = fileUpload.files[0];
+                const material = materialSelect.value;
+                if (!file) { return; }
+
+                quoteResultsDiv.innerHTML = `<div class="spinner-border" role="status"></div><p class="mt-2 text-muted">Analyzing model...</p>`;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const loader = new THREE.STLLoader();
+                        const geometry = loader.parse(event.target.result);
+                        geometry.computeBoundingBox();
+                        const box = geometry.boundingBox;
+                        const width = (box.max.x - box.min.x).toFixed(1);
+                        const depth = (box.max.y - box.min.y).toFixed(1);
+                        const height = (box.max.z - box.min.z).toFixed(1);
+
+                        let volume = 0;
+                        const positions = geometry.attributes.position.array;
+                        for (let i = 0; i < positions.length; i += 9) {
+                            const p1 = new THREE.Vector3(positions[i], positions[i+1], positions[i+2]);
+                            const p2 = new THREE.Vector3(positions[i+3], positions[i+4], positions[i+5]);
+                            const p3 = new THREE.Vector3(positions[i+6], positions[i+7], positions[i+8]);
+                            volume += p1.dot(p2.cross(p3)) / 6;
+                        }
+                        const volumeCm3 = Math.abs(volume) / 1000;
+                        const priceDetails = calculatePrice(volumeCm3, material);
+
+                        // Store the calculated details so the save function can access them
+                        currentQuoteData = {
+                            price: priceDetails.totalPrice,
+                            volume: priceDetails.volume,
+                            dimensions: `${width} x ${depth} x ${height} mm`,
+                            material: material,
+                            fileName: file.name
+                        };
+
+                        quoteResultsDiv.innerHTML = `
+                            <h2 class="display-4 fw-bold text-primary">$${priceDetails.totalPrice}</h2>
+                            <p class="text-muted">Based on your selections</p><hr>
+                            <ul class="list-unstyled text-start">
+                                <li><strong><i class="bi bi-arrows-angle-expand me-2"></i>Dimensions:</strong> ${currentQuoteData.dimensions}</li>
+                                <li><strong><i class="bi bi-box-seam me-2"></i>Model Volume:</strong> ${currentQuoteData.volume} cm³</li>
+                            </ul>
+                            <div class="d-grid mt-3">
+                                <button class="btn btn-success" id="proceed-to-order-button">Proceed to Order</button>
+                            </div>
+                        `;
+                        // Attach the event listener to the newly created button
+                        document.getElementById('proceed-to-order-button').addEventListener('click', saveOrderToFirestore);
+                    } catch (error) {
+                        quoteResultsDiv.innerHTML = `<div class="alert alert-danger"><strong>Error:</strong> Could not read the STL file. It may be corrupted.</div>`;
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+
+            fileUpload.addEventListener('change', runQuoteCalculation);
+            materialSelect.addEventListener('change', runQuoteCalculation);
         });
     </script>
 </body>
