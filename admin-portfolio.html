@@ -86,7 +86,7 @@
                 previewContainer.innerHTML = portfolioData.map((item, index) => `
                     <div class="list-group-item list-group-item-action">
                         <div class="row g-3 align-items-center">
-                            <div class="col-auto"><img src="../${item.imageUrl}" class="rounded" style="width: 80px; height: 80px; object-fit: cover;" alt="${item.title}"></div>
+                            <div class="col-auto"><img src="${item.imageUrl}" class="rounded" style="width: 80px; height: 80px; object-fit: cover;" alt="${item.title}"></div>
                             <div class="col"><h5 class="mb-1">${item.title}</h5><p class="mb-1 small">${item.description}</p><small class="text-muted">${item.imageUrl}</small></div>
                             <div class="col-auto">
                                 <button class="btn btn-sm btn-outline-primary mb-1" onclick="editItem(${index})"><i class="bi bi-pencil-fill"></i></button>
