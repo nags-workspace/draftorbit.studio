@@ -66,9 +66,10 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.124.0/examples/js/loaders/STLLoader.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script> <!-- Required for saving orders -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/main.js"></script>
+        <!-- ... all your HTML content and other script tags ... -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const fileUpload = document.getElementById('file-upload');
@@ -77,11 +78,11 @@
             const projectNameInput = document.getElementById('project-name');
 
             const db = firebase.firestore();
-            let currentQuoteData = null; // Holds the details of the most recent quote
+            let currentQuoteData = null;
 
             const pricing = {
-                pricePerCubicCm: { pla: 1.25, petg: 1.50, abs: 1.40 },
-                baseFee: 5.00
+                pricePerCubicCm: { pla: 8, petg: 10, abs: 9 },
+                baseFee: 200
             };
 
             function calculatePrice(volumeCm3, materialType) {
@@ -90,52 +91,73 @@
                 return { totalPrice: totalPrice.toFixed(2), volume: Math.round(volumeCm3 * 100) / 100 };
             }
 
-            // New function to save the accepted quote as an order
-            function saveOrderToFirestore() {
+            async function saveOrderToFirestore() {
                 const user = firebase.auth().currentUser;
+                const orderButton = document.getElementById('proceed-to-order-button');
 
                 if (!user) {
                     alert("Please log in to place an order.");
                     window.location.href = 'login.html';
                     return;
                 }
-                if (!currentQuoteData) {
-                    alert("Error: No quote data available to save. Please calculate a quote first.");
-                    return;
-                }
-                if (!projectNameInput.value.trim()) {
-                    alert("Please enter a name for your project.");
+                if (!currentQuoteData || !projectNameInput.value.trim()) {
+                    alert("Please ensure you have a project name and a calculated quote.");
                     projectNameInput.focus();
                     return;
                 }
 
-                const orderButton = document.getElementById('proceed-to-order-button');
                 orderButton.disabled = true;
-                orderButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Placing Order...';
+                orderButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Verifying Profile...';
 
-                const projectData = {
-                    userId: user.uid,
-                    userName: user.email,
-                    projectName: projectNameInput.value.trim(),
-                    fileName: currentQuoteData.fileName,
-                    fileUrl: null, // File will be emailed manually by the user
-                    projectDescription: `Material: ${currentQuoteData.material.toUpperCase()}, Volume: ${currentQuoteData.volume} cm³, Dimensions: ${currentQuoteData.dimensions}`,
-                    status: 'Quote Accepted', // The initial status for a new order
-                    quotedPrice: parseFloat(currentQuoteData.price),
-                    submittedAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-
-                db.collection('projects').add(projectData)
-                    .then(() => {
-                        alert("Your order has been placed! You will now be redirected to your projects page.");
-                        window.location.href = 'my-projects.html';
-                    })
-                    .catch(error => {
-                        console.error("Error saving order: ", error);
-                        alert("An error occurred while placing your order. Please try again.");
+                try {
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    if (!userDoc.exists || !userDoc.data().fullName || !userDoc.data().addressLine1 || !userDoc.data().city) {
+                        alert("Your billing address is incomplete. Please update your profile in 'My Account' before placing an order.");
                         orderButton.disabled = false;
-                        orderButton.textContent = 'Proceed to Order';
-                    });
+                        orderButton.innerHTML = 'Proceed to Order';
+                        // Optionally, redirect them to the account page
+                        // window.location.href = 'account.html';
+                        return; // Stop the process
+                    }
+                    const userData = userDoc.data();
+
+                    orderButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Placing Order...';
+
+                    const billingDetails = {
+                        fullName: userData.fullName,
+                        phone: userData.phone || 'N/A',
+                        addressLine1: userData.addressLine1,
+                        addressLine2: userData.addressLine2 || '',
+                        city: userData.city,
+                        state: userData.state || '',
+                        pincode: userData.pincode || ''
+                    };
+
+                    const projectData = {
+                        userId: user.uid,
+                        userName: user.email,
+                        userFullName: billingDetails.fullName,
+                        projectName: projectNameInput.value.trim(),
+                        fileName: currentQuoteData.fileName,
+                        fileUrl: null,
+                        projectDescription: `Material: ${currentQuoteData.material.toUpperCase()}, Volume: ${currentQuoteData.volume} cm³, Dimensions: ${currentQuoteData.dimensions}`,
+                        status: 'Quote Accepted',
+                        quotedPrice: parseFloat(currentQuoteData.price),
+                        submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        billingDetails: billingDetails
+                    };
+
+                    await db.collection('projects').add(projectData);
+                    
+                    alert("Your order has been placed successfully! You will now be redirected to your projects page.");
+                    window.location.href = 'my-projects.html';
+
+                } catch (error) {
+                    console.error("Error placing order: ", error);
+                    alert("An error occurred while placing your order. Please try again.");
+                    orderButton.disabled = false;
+                    orderButton.textContent = 'Proceed to Order';
+                }
             }
 
             function runQuoteCalculation() {
@@ -167,7 +189,6 @@
                         const volumeCm3 = Math.abs(volume) / 1000;
                         const priceDetails = calculatePrice(volumeCm3, material);
 
-                        // Store the calculated details so the save function can access them
                         currentQuoteData = {
                             price: priceDetails.totalPrice,
                             volume: priceDetails.volume,
@@ -177,7 +198,7 @@
                         };
 
                         quoteResultsDiv.innerHTML = `
-                            <h2 class="display-4 fw-bold text-primary">$${priceDetails.totalPrice}</h2>
+                            <h2 class="display-4 fw-bold text-primary">₹${priceDetails.totalPrice}</h2>
                             <p class="text-muted">Based on your selections</p><hr>
                             <ul class="list-unstyled text-start">
                                 <li><strong><i class="bi bi-arrows-angle-expand me-2"></i>Dimensions:</strong> ${currentQuoteData.dimensions}</li>
@@ -187,7 +208,6 @@
                                 <button class="btn btn-success" id="proceed-to-order-button">Proceed to Order</button>
                             </div>
                         `;
-                        // Attach the event listener to the newly created button
                         document.getElementById('proceed-to-order-button').addEventListener('click', saveOrderToFirestore);
                     } catch (error) {
                         quoteResultsDiv.innerHTML = `<div class="alert alert-danger"><strong>Error:</strong> Could not read the STL file. It may be corrupted.</div>`;

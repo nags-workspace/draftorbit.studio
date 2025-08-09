@@ -17,6 +17,11 @@
             <a class="navbar-brand fw-bold" href="admin.html">DraftOrbit Admin</a>
             <button class="btn btn-outline-light" id="logout-button">Logout</button>
         </div>
+        <div>
+            <!-- ADD THIS NEW LINK -->
+            <a href="admin-pricing.html" class="btn btn-info">Manage Pricing</a>
+            <button class="btn btn-outline-light" id="logout-button">Logout</button>
+        </div>
     </nav>
 
     <!-- Main Dashboard Content -->
@@ -33,6 +38,7 @@
                                 <th>Submitted At</th>
                                 <th>Project & File Details</th>
                                 <th>User</th>
+                                <th>Quoted Price</th> <!-- NEW COLUMN -->
                                 <th>Status</th>
                                 <th>Update Status</th>
                             </tr>
@@ -70,7 +76,7 @@
         };
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 
-        const ADMIN_UID = "vSvd3m74q8ZWUsxoGpphKEnxkcH3"; // Your Admin UID is set here.
+        const ADMIN_UID = "vSvd3m74q8ZWUsxoGpphKEnxkcH3";
         
         const db = firebase.firestore();
         const tableBody = document.getElementById('projects-table-body');
@@ -80,17 +86,14 @@
         // --- SECURITY GATE & LOGOUT ---
         firebase.auth().onAuthStateChanged(user => {
             if (user && user.uid === ADMIN_UID) {
-                // User is the admin, load the data.
                 loadAllProjects();
             } else {
-                // User is not admin or not logged in, redirect to the admin login page.
                 window.location.href = 'admin-login.html';
             }
         });
 
         logoutButton.addEventListener('click', () => {
             firebase.auth().signOut().then(() => {
-                // On successful logout, send them back to the admin login page.
                 window.location.href = 'admin-login.html';
             });
         });
@@ -103,9 +106,8 @@
                     adminAlert.className = 'alert alert-success';
                     adminAlert.textContent = `Project status updated to "${newStatus}".`;
                     adminAlert.classList.remove('d-none');
-                    // Hide the alert after 3 seconds
                     setTimeout(() => adminAlert.classList.add('d-none'), 3000);
-                    loadAllProjects(); // Refresh the table to show the change
+                    loadAllProjects();
                 })
                 .catch(error => {
                     adminAlert.className = 'alert alert-danger';
@@ -117,15 +119,9 @@
         
         function addOrEditFileLink(projectId) {
             const fileUrl = prompt("Please paste the shareable file link (from Google Drive, Dropbox, etc.):");
-            if (fileUrl === null || fileUrl.trim() === "") {
-                return;
-            }
-
+            if (fileUrl === null || fileUrl.trim() === "") { return; }
             const fileName = prompt("Enter the name of the file (e.g., bracket_v2.stl):");
-            if (fileName === null || fileName.trim() === "") {
-                return;
-            }
-
+            if (fileName === null || fileName.trim() === "") { return; }
             db.collection('projects').doc(projectId).update({
                 fileUrl: fileUrl,
                 fileName: fileName
@@ -143,58 +139,68 @@
             });
         }
         
-        function loadAllProjects() {
-            db.collection("projects").orderBy("submittedAt", "desc").get().then(snapshot => {
-                let html = '';
-                if (snapshot.empty) {
-                    tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No projects submitted.</td></tr>';
-                    return;
-                }
-                snapshot.forEach(doc => {
-                    const project = doc.data();
-                    const projectId = doc.id;
-                    const submittedDate = project.submittedAt.toDate().toLocaleDateString();
+        
+        // This is inside your admin.html's <script> tag
 
-                    let fileInfoHtml = '';
-                    if (project.fileUrl) {
-                        const viewerLink = `viewer.html?model=${encodeURIComponent(project.fileUrl)}&name=${encodeURIComponent(project.fileName)}`;
-                        fileInfoHtml = `<div class="d-flex align-items-center mt-2">
-                                            <a href="${viewerLink}" class="btn btn-sm btn-info me-2">
-                                                <i class="bi bi-eye-fill me-1"></i> View 3D Model
-                                            </a>
-                                            <button onclick="addOrEditFileLink('${projectId}')" class="btn btn-sm btn-light" title="Edit Link"><i class="bi bi-pencil-fill"></i></button>
-                                        </div>`;
-                    } else {
-                        fileInfoHtml = `<button onclick="addOrEditFileLink('${projectId}')" class="btn btn-sm btn-success mt-2">
-                                            <i class="bi bi-plus-circle-fill me-1"></i> Add File Link
-                                        </button>`;
-                    }
+// Add this new function to your script
+function enableInvoice(projectId) {
+    if (confirm("Are you sure you want to enable the invoice for this customer?")) {
+        db.collection('projects').doc(projectId).update({
+            invoiceEnabled: true
+        }).then(() => {
+            showAlert('Invoice enabled for customer!', 'success');
+            loadAllProjects(); // Refresh the table
+        });
+    }
+}
 
-                    const statuses = ["Submitted", "File Received", "Quote Ready", "In Progress", "Shipped", "Cancelled"];
-                    const optionsHtml = statuses.map(s => `<option value="${s}" ${s === project.status ? 'selected' : ''}>${s}</option>`).join('');
-                    
-                    html += `
-                        <tr>
-                            <td>${submittedDate}</td>
-                            <td>
-                                <strong>${project.projectName}</strong>
-                                <p class="small text-muted mb-0">${project.projectDescription}</p>
-                                ${fileInfoHtml}
-                            </td>
-                            <td>${project.userName}</td>
-                            <td><span class="badge bg-primary">${project.status}</span></td>
-                            <td>
-                                <div class="input-group">
-                                    <select class="form-select form-select-sm" id="status-${projectId}">${optionsHtml}</select>
-                                    <button class="btn btn-sm btn-outline-secondary" onclick="updateProjectStatus('${projectId}', document.getElementById('status-${projectId}').value)">Save</button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                });
-                tableBody.innerHTML = html;
-            });
+function loadAllProjects() {
+    db.collection("projects").orderBy("submittedAt", "desc").get().then(snapshot => {
+        let html = '';
+        if (snapshot.empty) { tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No projects submitted.</td></tr>'; return; }
+        snapshot.forEach(doc => {
+            const project = doc.data();
+            const projectId = doc.id;
+            
+            // === THIS IS THE UPDATED SECTION ===
+            let actionButtonsHtml = '';
+            // Invoice Button Logic
+           if (project.invoiceEnabled) {
+            actionButtonsHtml += `<a href="admin-invoice.html?id=${projectId}" class="btn btn-sm btn-outline-success">Edit Invoice</a>`;
+        } else {
+            actionButtonsHtml += `<a href="admin-invoice.html?id=${projectId}" class="btn btn-sm btn-success">Create Invoice</a>`;
         }
+
+            // File Link Button Logic (remains the same)
+            if (project.fileUrl) {
+                const viewerLink = `viewer.html?model=${encodeURIComponent(project.fileUrl)}&name=${encodeURIComponent(project.fileName)}`;
+                actionButtonsHtml += `<a href="${viewerLink}" class="btn btn-sm btn-info ms-2"><i class="bi bi-eye-fill me-1"></i> View Model</a>`;
+            } else {
+                actionButtonsHtml += `<button onclick="addOrEditFileLink('${projectId}')" class="btn btn-sm btn-outline-secondary ms-2"><i class="bi bi-plus-circle-fill me-1"></i> Add File</button>`;
+            }
+            // === END OF UPDATED SECTION ===
+
+            const priceHtml = project.quotedPrice ? `₹${project.quotedPrice.toFixed(2)}` : '<span class="text-muted">N/A</span>';
+            const statuses = ["Quote Accepted", "Submitted", "File Received", "In Progress", "Shipped", "Cancelled"];
+            const optionsHtml = statuses.map(s => `<option value="${s}" ${s === project.status ? 'selected' : ''}>${s}</option>`).join('');
+            
+            html += `
+                <tr>
+                    <td>${project.submittedAt.toDate().toLocaleDateString()}</td>
+                    <td>
+                        <strong>${project.projectName}</strong>
+                        <p class="small text-muted mb-0">${project.projectDescription}</p>
+                        <div class="mt-2">${actionButtonsHtml}</div>
+                    </td>
+                    <td>${project.userName}</td>
+                    <td><strong class="text-primary">${priceHtml}</strong></td>
+                    <td><span class="badge bg-primary">${project.status}</span></td>
+                    <td><div class="input-group"><select class="form-select form-select-sm" id="status-${projectId}">${optionsHtml}</select><button class="btn btn-sm btn-outline-secondary" onclick="updateProjectStatus('${projectId}', document.getElementById('status-${projectId}').value)">Save</button></div></td>
+                </tr>`;
+        });
+        tableBody.innerHTML = html;
+    });
+}
     </script>
 </body>
 </html>

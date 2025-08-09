@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="assets/images/logo.png">
+    <title>Invoice - DraftOrbit Studio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .invoice-header { background-color: #f8f9fa; }
+        @media print { body { background-color: #fff; -webkit-print-color-adjust: exact; } .no-print { display: none !important; } .invoice-card { box-shadow: none !important; border: 1px solid #dee2e6 !important; } .invoice-header { background-color: #f8f9fa !important; } }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+                    <h4 class="fw-bold mb-0">Invoice Preview</h4>
+                    <div><a href="my-projects.html" class="btn btn-secondary">Back to Projects</a><button class="btn btn-primary ms-2" onclick="window.print()">Print / Save as PDF</button></div>
+                </div>
+                <div id="invoice-card" class="card border-0 shadow-sm">
+                    <div class="card-body p-0" id="invoice-content">
+                        <div class="text-center p-5"><div class="spinner-border"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const firebaseConfig = {
+                apiKey: "AIzaSyBEb1sB_AXKGxam3si8m81LPgr3b8HXTvg",
+                authDomain: "draftorbit-web.firebaseapp.com",
+                projectId: "draftorbit-web",
+                storageBucket: "draftorbit-web.firebasestorage.app",
+                messagingSenderId: "687122816959",
+                appId: "1:687122816959:web:a495dc656f84f2e6b24b0a",
+                measurementId: "G-7DTWGJQ4K9"
+            };
+            if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+            const db = firebase.firestore();
+            const invoiceContent = document.getElementById('invoice-content');
+            const projectId = new URLSearchParams(window.location.search).get('id');
+
+            if (!projectId) {
+                invoiceContent.innerHTML = '<div class="alert alert-danger m-4">Error: No project ID specified.</div>';
+                return;
+            }
+
+            db.collection('projects').doc(projectId).get().then(doc => {
+                if (doc.exists) {
+                    const project = doc.data();
+                    const invoiceDetails = project.invoiceDetails || {};
+                    const billing = project.billingDetails || {};
+                    const finalTotal = invoiceDetails.finalTotal !== undefined ? invoiceDetails.finalTotal : project.quotedPrice;
+
+                    const now = new Date();
+                    const day = now.getDate().toString().padStart(2, '0');
+                    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+                    const year = now.getFullYear();
+                    const hours = now.getHours().toString().padStart(2, '0');
+                    const minutes = now.getMinutes().toString().padStart(2, '0');
+                    const formattedDate = `${day}/${month}/${year}, ${hours}:${minutes}`;
+                    
+                    let lineItemsHtml = `
+                        <tr>
+                            <td>
+                                <p class="fw-bold mb-0">${project.projectName}</p>
+                                <p class="small text-muted mb-0">${project.projectDescription}</p>
+                            </td>
+                            <td class="text-end">₹${project.quotedPrice.toFixed(2)}</td>
+                        </tr>`;
+                                         
+                    if (invoiceDetails.extraAmount) {
+                        lineItemsHtml += `<tr><td>${invoiceDetails.extraDesc || 'Additional Charges'}</td><td class="text-end">₹${invoiceDetails.extraAmount.toFixed(2)}</td></tr>`;
+                    }
+                    if (invoiceDetails.discountAmount) {
+                        lineItemsHtml += `<tr><td>${invoiceDetails.discountDesc || 'Discount'}</td><td class="text-end text-danger">₹${invoiceDetails.discountAmount.toFixed(2)}</td></tr>`;
+                    }
+
+                    const invoiceHtml = `
+                        <div class="p-4 p-md-5 invoice-header">
+                            <div class="row align-items-center">
+                                <div class="col-6"><img src="assets/images/logo.png" style="width: 48px;"><h4 class="fw-bold mt-2 mb-0">DraftOrbit Studio</h4></div>
+                                <div class="col-6 text-end"><h2 class="fw-bolder mb-1">INVOICE</h2><p class="text-muted mb-0">#${projectId.substring(0, 8).toUpperCase()}</p></div>
+                            </div>
+                        </div>
+                        <div class="p-4 p-md-5">
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted">FROM:</h6>
+                                    <p class="mb-0 fw-bold">DraftOrbit Studio</p>
+                                    <p class="mb-0">[Your Address]</p>
+                                    <p class="mb-0">[Your City, Pincode]</p>
+                                    <p class="mb-0">[Your Email]</p>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    <h6 class="text-muted">BILL TO:</h6>
+                                    <p class="mb-0 fw-bold">${billing.fullName || project.userName}</p>
+                                    <p class="mb-0">${billing.addressLine1 || ''}</p>
+                                    <p class="mb-0">${billing.addressLine2 || ''}</p>
+                                    <p class="mb-0">${billing.city || ''} ${billing.state || ''} ${billing.pincode || ''}</p>
+                                    <p class="mb-0"><strong>Phone:</strong> ${billing.phone || 'N/A'}</p>
+                                    <h6 class="text-muted mt-3">DATE:</h6><p class="mb-0">${formattedDate}</p>
+                                </div>
+                            </div>
+                            <table class="table"><thead class="bg-light"><tr><th>DESCRIPTION</th><th class="text-end">AMOUNT</th></tr></thead><tbody>${lineItemsHtml}</tbody>
+                            <tfoot>
+                                <tr><td colspan="2" class="border-0"></td></tr>
+                                <tr><td class="text-end border-0"><strong>Total</strong></td><td class="text-end border-0 fs-4 fw-bold text-primary">₹${finalTotal.toFixed(2)}</td></tr>
+                            </tfoot></table>
+                            <hr>
+                            <div class="mt-4">
+                                <h6 class="fw-bold">Notes & Payment Instructions</h6>
+                                <p class="text-muted small">${invoiceDetails.notes || 'Please pay within 15 days. You can make the payment via UPI or Bank Transfer to the details below. Thank you for your business!'}</p>
+                                <div class="bg-light p-3 rounded mt-3">
+                                    <p class="mb-1 fw-bold">UPI: [your-upi-id@okhdfcbank]</p>
+                                    <p class="mb-0 fw-bold">Bank: [Your Bank Name], A/C: [Your Account Number], IFSC: [Your IFSC Code]</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    invoiceContent.innerHTML = invoiceHtml;
+                } else {
+                    invoiceContent.innerHTML = '<div class="alert alert-danger m-4">Error: Invoice not found or you do not have permission to view it.</div>';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

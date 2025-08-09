@@ -3,179 +3,131 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
-    <!-- Using the same favicon from your index.html -->
     <link rel="icon" type="image/x-icon" href="assets/images/logo.png">
-    
-    <!-- SEO Meta Tags (updated for this page) -->
     <title>My Account - DraftOrbit Studio</title>
-    <meta name="description" content="Manage your profile, view project history, and update your details at DraftOrbit Studio.">
-
-    <!-- Bootstrap CSS (matched to your index.html version) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Bootstrap Icons (matched to your index.html) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
-    <!-- Your Custom CSS (matched to your index.html) -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-
-    <!-- ======== NAVBAR PLACEHOLDER ======== -->
-    <!-- This will be populated by main.js, ensuring the header is identical. -->
     <div id="navbar-placeholder"></div>
-
-    <!-- ======== ACCOUNT MANAGEMENT CONTENT ======== -->
-    <div class="container" style="padding-top: 5rem; padding-bottom: 5rem;">
+    <div class="container py-5">
         <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
+            <div class="col-md-8 col-lg-7">
                 <h2 class="mb-4 fw-bold">My Account</h2>
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
-                        
-                        <!-- Form to display and edit user data -->
                         <form id="account-form">
-                            <!-- Full Name -->
-                            <div class="mb-3">
-                                <label for="account-fullname" class="form-label">Full Name</label>
-                                <input type="text" class="form-control" id="account-fullname" disabled>
+                            <h5 class="mb-3">Personal Details</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3"><label for="account-fullname" class="form-label">Full Name</label><input type="text" class="form-control" id="account-fullname" disabled></div>
+                                <div class="col-md-6 mb-3"><label for="account-username" class="form-label">Username</label><input type="text" class="form-control" id="account-username" disabled></div>
+                                <div class="col-md-6 mb-3"><label for="account-phone" class="form-label">Phone Number</label><input type="tel" class="form-control" id="account-phone" disabled></div>
+                                <div class="col-md-6 mb-3"><label for="account-email" class="form-label">Email</label><input type="email" class="form-control-plaintext" id="account-email" readonly></div>
                             </div>
-                            <!-- Username -->
-                            <div class="mb-3">
-                                <label for="account-username" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="account-username" disabled>
+                            <hr class="my-4">
+                            <h5 class="mb-3">Billing Address</h5>
+                            <div class="mb-3"><label for="account-address1" class="form-label">Address Line 1</label><input type="text" class="form-control" id="account-address1" disabled></div>
+                            <div class="mb-3"><label for="account-address2" class="form-label">Address Line 2 (Optional)</label><input type="text" class="form-control" id="account-address2" disabled></div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3"><label for="account-city" class="form-label">City</label><input type="text" class="form-control" id="account-city" disabled></div>
+                                <div class="col-md-6 mb-3"><label for="account-state" class="form-label">State</label><input type="text" class="form-control" id="account-state" disabled></div>
+                                <div class="col-md-6 mb-3"><label for="account-pincode" class="form-label">Pincode</label><input type="text" class="form-control" id="account-pincode" disabled></div>
                             </div>
-                            <!-- Phone Number -->
-                            <div class="mb-3">
-                                <label for="account-phone" class="form-label">Phone Number</label>
-                                <input type="tel" class="form-control" id="account-phone" disabled>
-                            </div>
-                            <!-- Email (Read-only for security) -->
-                            <div class="mb-3">
-                                <label for="account-email" class="form-label">Email</label>
-                                <input type="email" class="form-control-plaintext" id="account-email" readonly>
-                                <div class="form-text">Your email cannot be changed.</div>
-                            </div>
-                            
-                            <!-- Alert for messages -->
                             <div id="account-alert" class="alert d-none mt-3" role="alert"></div>
-
-                            <!-- Action Buttons -->
                             <div class="d-flex justify-content-end align-items-center mt-4">
                                 <button type="button" class="btn btn-secondary me-2 d-none" id="cancel-button">Cancel</button>
                                 <button type="submit" class="btn btn-primary d-none" id="save-button">Save Changes</button>
                                 <button type="button" class="btn btn-primary" id="edit-button">Edit Profile</button>
                             </div>
                         </form>
-
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- ======== FOOTER PLACEHOLDER ======== -->
-    <!-- This will be populated by main.js, ensuring the footer is identical. -->
     <div id="footer-placeholder"></div>
-
-    <!-- ===== SCRIPTS ===== -->
-    
-    <!-- Firebase SDKs - Firestore is ADDED here because this page needs it -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script> <!-- This line is required for this page to work! -->
-
-    <!-- Bootstrap JS (matched to your index.html) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Your Custom Scripts (in the correct order) -->
-    <!-- auth.js defines the functions, so it should come before main.js which calls them. -->
-    <script src="assets/js/auth.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="assets/js/auth.js"></script>
     <script src="assets/js/main.js"></script>
-
-    <!-- Page-Specific Logic for Account Management -->
     <script>
-        // Get references to all our form elements
-        const accountForm = document.getElementById('account-form');
-        const fullNameInput = document.getElementById('account-fullname');
-        const usernameInput = document.getElementById('account-username');
-        const phoneInput = document.getElementById('account-phone');
-        const emailInput = document.getElementById('account-email');
-        const editButton = document.getElementById('edit-button');
-        const saveButton = document.getElementById('save-button');
-        const cancelButton = document.getElementById('cancel-button');
-        const accountAlert = document.getElementById('account-alert');
-
-        const db = firebase.firestore();
-        let currentUser = null; 
-        let originalUserData = {}; 
-
-        function setEditMode(isEditing) {
-            fullNameInput.disabled = !isEditing;
-            usernameInput.disabled = !isEditing;
-            phoneInput.disabled = !isEditing;
-
-            editButton.classList.toggle('d-none', isEditing);
-            saveButton.classList.toggle('d-none', !isEditing);
-            cancelButton.classList.toggle('d-none', !isEditing);
-        }
-
-        function loadUserProfile(uid) {
-            const userDocRef = db.collection('users').doc(uid);
-            userDocRef.get().then(doc => {
-                if (doc.exists) {
-                    originalUserData = doc.data();
-                    fullNameInput.value = originalUserData.fullName || '';
-                    usernameInput.value = originalUserData.username || '';
-                    phoneInput.value = originalUserData.phone || '';
-                    emailInput.value = originalUserData.email || '';
-                } else {
-                    console.error("No user data found in Firestore!");
-                }
-            }).catch(error => {
-                console.error("Error fetching user data:", error);
-            });
-        }
-
-        firebase.auth().onAuthStateChanged(user => {
-            if (user) {
-                currentUser = user;
-                loadUserProfile(user.uid);
-            } else {
-                window.location.href = `login.html`;
-            }
-        });
-
-        editButton.addEventListener('click', () => {
-            setEditMode(true);
-        });
-
-        cancelButton.addEventListener('click', () => {
-            loadUserProfile(currentUser.uid); 
-            setEditMode(false);
-            accountAlert.classList.add('d-none');
-        });
-
-        accountForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const updatedData = {
-                fullName: fullNameInput.value,
-                username: usernameInput.value.toLowerCase(),
-                phone: phoneInput.value,
+        document.addEventListener('DOMContentLoaded', () => {
+            const db = firebase.firestore();
+            let currentUser = null;
+            // Get references to ALL form elements
+            const inputs = {
+                fullName: document.getElementById('account-fullname'),
+                username: document.getElementById('account-username'),
+                phone: document.getElementById('account-phone'),
+                email: document.getElementById('account-email'),
+                address1: document.getElementById('account-address1'),
+                address2: document.getElementById('account-address2'),
+                city: document.getElementById('account-city'),
+                state: document.getElementById('account-state'),
+                pincode: document.getElementById('account-pincode'),
             };
-            db.collection('users').doc(currentUser.uid).update(updatedData)
-                .then(() => {
+            const editButton = document.getElementById('edit-button');
+            const saveButton = document.getElementById('save-button');
+            const cancelButton = document.getElementById('cancel-button');
+            const accountAlert = document.getElementById('account-alert');
+            const accountForm = document.getElementById('account-form');
+
+            function setEditMode(isEditing) {
+                // Loop through all inputs (except email) and toggle their disabled state
+                Object.keys(inputs).forEach(key => { if(key !== 'email') inputs[key].disabled = !isEditing; });
+                editButton.classList.toggle('d-none', isEditing);
+                saveButton.classList.toggle('d-none', !isEditing);
+                cancelButton.classList.toggle('d-none', !isEditing);
+            }
+
+            function loadUserProfile(uid) {
+                db.collection('users').doc(uid).get().then(doc => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        inputs.fullName.value = data.fullName || '';
+                        inputs.username.value = data.username || '';
+                        inputs.phone.value = data.phone || '';
+                        inputs.email.value = data.email || '';
+                        inputs.address1.value = data.addressLine1 || '';
+                        inputs.address2.value = data.addressLine2 || '';
+                        inputs.city.value = data.city || '';
+                        inputs.state.value = data.state || '';
+                        inputs.pincode.value = data.pincode || '';
+                    }
+                });
+            }
+
+            firebase.auth().onAuthStateChanged(user => {
+                if (user) { currentUser = user; loadUserProfile(user.uid); } 
+                else { window.location.href = 'login.html'; }
+            });
+
+            editButton.addEventListener('click', () => setEditMode(true));
+            cancelButton.addEventListener('click', () => { loadUserProfile(currentUser.uid); setEditMode(false); });
+
+            accountForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const updatedData = {
+                    fullName: inputs.fullName.value,
+                    username: inputs.username.value,
+                    phone: inputs.phone.value,
+                    addressLine1: inputs.address1.value,
+                    addressLine2: inputs.address2.value,
+                    city: inputs.city.value,
+                    state: inputs.state.value,
+                    pincode: inputs.pincode.value,
+                };
+                db.collection('users').doc(currentUser.uid).update(updatedData).then(() => {
                     accountAlert.textContent = "Your profile has been updated successfully.";
                     accountAlert.className = 'alert alert-success mt-3';
                     setEditMode(false);
-                })
-                .catch(error => {
-                    accountAlert.textContent = "An error occurred while updating your profile.";
+                }).catch(error => {
+                    accountAlert.textContent = "An error occurred while updating.";
                     accountAlert.className = 'alert alert-danger mt-3';
                 });
+            });
         });
     </script>
-    
 </body>
 </html>
