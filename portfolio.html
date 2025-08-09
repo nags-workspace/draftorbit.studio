@@ -15,7 +15,7 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <!-- Your Custom CSS (adjust path) -->
+    <!-- Your Custom CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
@@ -34,54 +34,14 @@
     <!-- ======== PORTFOLIO GALLERY ======== -->
     <section class="py-5">
         <div class="container">
-            <div class="row">
-                
-                <!-- TODO: Replace all content and images with your actual projects -->
-
-                <!-- Portfolio Item 1 -->
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 shadow-sm border-0">
-                        <img src="https://via.placeholder.com/600x400.png?text=Project+Alpha" class="card-img-top" alt="Project Alpha">
-                        <div class="card-body">
-                            <h5 class="card-title">Functional Prototype</h5>
-                            <p class="card-text text-muted">Custom-designed and printed a durable enclosure for an electronics project, focusing on precise fit and ventilation.</p>
-                        </div>
-                        <div class="card-footer bg-white border-0">
-                           <small class="text-muted">Services: CAD Design, 3D Printing</small>
-                        </div>
+            <!-- This is the container where our dynamic portfolio items will be injected -->
+            <div id="portfolio-grid" class="row g-4">
+                <!-- Loading spinner while we fetch the data -->
+                <div class="col-12 text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
-
-                <!-- Portfolio Item 2 -->
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 shadow-sm border-0">
-                        <img src="https://via.placeholder.com/600x400.png?text=Project+Beta" class="card-img-top" alt="Project Beta">
-                        <div class="card-body">
-                            <h5 class="card-title">Architectural Model</h5>
-                            <p class="card-text text-muted">Printed a detailed scale model for a local architect, showcasing complex geometries and fine details for a client presentation.</p>
-                        </div>
-                        <div class="card-footer bg-white border-0">
-                           <small class="text-muted">Services: 3D Printing</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Portfolio Item 3 -->
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 shadow-sm border-0">
-                        <img src="https://via.placeholder.com/600x400.png?text=Project+Gamma" class="card-img-top" alt="Project Gamma">
-                        <div class="card-body">
-                            <h5 class="card-title">Custom Mechanical Part</h5>
-                            <p class="card-text text-muted">Reverse-engineered and modeled a replacement gear for a small machine, optimizing the design for strength and durability.</p>
-                        </div>
-                        <div class="card-footer bg-white border-0">
-                           <small class="text-muted">Services: CAD Design, 3D Printing</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add more portfolio items here by copying the structure above -->
-
             </div>
         </div>
     </section>
@@ -98,18 +58,56 @@
     <!-- ======== FOOTER PLACEHOLDER ======== -->
     <div id="footer-placeholder"></div>
 
-        <!-- ===== SCRIPTS ===== -->
-    
-    <!-- Firebase SDKs (if not already on the page) -->
+    <!-- ===== SCRIPTS ===== -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Your Custom Scripts -->
     <script src="assets/js/main.js"></script>
-    <script src="assets/js/auth.js"></script> <!-- This must be present -->
+    <script src="assets/js/auth.js"></script>
     
+    <!-- Page-specific script to load the portfolio -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const portfolioGrid = document.getElementById('portfolio-grid');
+
+            // Fetch the portfolio data from the JSON file
+            fetch('portfolio-data.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    let html = '';
+                    if (data.length === 0) {
+                        portfolioGrid.innerHTML = '<div class="col-12 text-center"><p class="text-muted">No portfolio items have been added yet. Check back soon!</p></div>';
+                        return;
+                    }
+
+                    // Loop through each item in the data and create a card for it
+                    data.forEach(item => {
+                        html += `
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100 shadow-sm border-0">
+                                    <img src="${item.imageUrl}" class="card-img-top" alt="${item.title}" style="aspect-ratio: 4/3; object-fit: cover;">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${item.title}</h5>
+                                        <p class="card-text text-muted">${item.description}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    // Inject the generated HTML into the grid
+                    portfolioGrid.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error("Error fetching or parsing portfolio data:", error);
+                    portfolioGrid.innerHTML = '<div class="col-12 text-center"><p class="text-danger">Sorry, we could not load our portfolio at this time.</p></div>';
+                });
+        });
+    </script>
 </body>
 </html>
