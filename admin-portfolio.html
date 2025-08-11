@@ -25,13 +25,13 @@
                             <div class="mb-3"><label for="proj-title" class="form-label">Project Title</label><input type="text" id="proj-title" class="form-control" required></div>
                             <div class="mb-3"><label for="proj-desc" class="form-label">Description</label><textarea id="proj-desc" class="form-control" rows="3" required></textarea></div>
                             <div class="mb-3">
-                                <label for="proj-image" class="form-label">Image Filename / Upload</label>
-                                <input type="text" id="proj-image-filename" class="form-control" placeholder="e.g., project-alpha.jpg" required>
-                                <input type="file" id="proj-image-upload" class="form-control mt-2 d-none" accept="image/jpeg, image/png, image/webp">
+                                <label for="proj-image-upload" class="form-label">Image File</label>
+                                <input type="text" id="proj-image-filename" class="form-control d-none" readonly>
+                                <input type="file" id="proj-image-upload" class="form-control" accept="image/jpeg, image/png, image/webp">
                                 <small id="image-help-text" class="form-text text-muted">A new image is required when adding an item.</small>
                             </div>
                             <div class="d-grid gap-2">
-                                <button type="submit" id="form-action-button" class="btn btn-primary">Add Item & Deploy</button>
+                                <button type="submit" id="form-action-button" class="btn btn-primary">Add & Deploy Item</button>
                                 <button type="button" id="cancel-edit-button" class="btn btn-secondary d-none">Cancel Edit</button>
                             </div>
                         </form>
@@ -39,7 +39,7 @@
                 </div>
             </div>
             <!-- Current Portfolio Preview -->
-            <div class="col-lg-7">
+            <div class="col-lg-8">
                 <h4 class="mb-3">Current Portfolio Items</h4>
                 <div id="portfolio-preview" class="list-group">
                     <div class="list-group-item text-center"><div class="spinner-border spinner-border-sm"></div></div>
@@ -49,7 +49,7 @@
     </main>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMnmfB_77LKLb4-XeWUmvCAAdPB9gwWd6kllLXqo2A3s5IRLddoyt_j_CP2mBFRB0/exec";
+            const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyWyvWbSCTAvRlj-alp2E_T3SVaaS0Ajj89Wsyvz9ng4Szc-yPpXkWtOhJwAqD7XSre/exec";
 
             const form = document.getElementById('portfolio-form');
             const formHeader = document.getElementById('form-header');
@@ -74,6 +74,7 @@
             }
 
             function loadInitialData() {
+                // THIS IS THE CORRECTED LINE
                 fetch('portfolio-data.json')
                     .then(response => response.ok ? response.json() : Promise.reject('File not found'))
                     .then(data => { portfolioData = data; renderPreview(); })
@@ -108,18 +109,16 @@
                 imageUploadInput.required = true;
                 imageHelpText.textContent = "A new image is required when adding an item.";
             }
-            resetForm(); // Call on load to set initial state
+            resetForm();
 
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const file = imageUploadInput.files[0];
                 const isEditing = currentlyEditingIndex !== null;
-                
                 if (!titleInput.value.trim() || !descInput.value.trim() || (!isEditing && !file)) {
                     alert("Please fill out all fields. An image is required when adding a new item.");
                     return;
                 }
-
                 actionButton.disabled = true;
                 actionButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Deploying...';
                 
@@ -145,7 +144,6 @@
                         .catch(error => showAlert(`Deployment failed: ${error.message}`, 'danger'))
                         .finally(() => { actionButton.disabled = false; resetForm(); });
                 };
-
                 if (file) {
                     reader.readAsDataURL(file);
                 } else {
@@ -156,17 +154,12 @@
             window.editItem = function(index) {
                 currentlyEditingIndex = index;
                 const item = portfolioData[index];
-                
                 titleInput.value = item.title;
                 descInput.value = item.description;
-                
-                imageUploadInput.classList.add('d-none'); // Hide the file upload
+                imageUploadInput.classList.remove('d-none');
                 imageUploadInput.required = false;
-                imageFilenameInput.classList.remove('d-none'); // Show the filename text input
-                imageFilenameInput.value = item.imageUrl; // Show the full path for reference
-                imageFilenameInput.disabled = true; // Make it non-editable
-                imageHelpText.textContent = "Image cannot be changed during an edit. To change an image, delete and re-add the item.";
-
+                imageFilenameInput.classList.add('d-none');
+                imageHelpText.textContent = "Choose a new file only if you want to replace the current one.";
                 formHeader.textContent = "Edit Portfolio Item";
                 actionButton.textContent = "Save Changes & Deploy";
                 actionButton.classList.replace('btn-primary', 'btn-warning');
