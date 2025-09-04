@@ -21,14 +21,14 @@ body {
 /* ===== Hero Section ===== */
 /* ----------------------------------------------------------------- */
 .hero-section {
-    background: linear-gradient(rgba(0, 0, 0, 0.585), rgba(0, 0, 0, 0.289)), url('assets/images/hero-bg.jpg');
+    background: linear-gradient(rgba(0, 0, 0, 0.585), rgba(0, 0, 0, 0.289)), url('../images/hero-bg.jpg');
     background-size: cover;
     background-position: center;
     height: 70vh;
     display: flex;
     align-items: center;
     justify-content: center;
-}
+}*/
 
 /* ===== Card Components ===== */
 /* ----------------------------------------------------------------- */
