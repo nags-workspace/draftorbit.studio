@@ -71,48 +71,35 @@
             </div>
         </div>
     </div>
-
-    <!-- Script to dynamically set the current year -->
     <script>
-        document.getElementById('current-year').textContent = new Date().getFullYear();
+        // Ensure this script runs only if the element exists
+        const yearSpan = document.getElementById('current-year');
+        if (yearSpan) {
+            yearSpan.textContent = new Date().getFullYear();
+        }
     </script>
 </footer>
 
 <!-- ======== ASSISTANT OVERLAY HTML ======== -->
 <div class="assistant-overlay">
-    <!-- The Chat Window -->
     <div class="assistant-window shadow" id="assistant-window">
-        <!-- Header -->
-        <div class="assistant-header bg-primary text-white p-3 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">DraftOrbit Assistant</h5>
+        <div class="assistant-header text-white p-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">DraftOrbit AI Assistant</h5>
             <button type="button" class="btn-close btn-close-white" id="close-assistant"></button>
         </div>
-
-        <!-- Chat Body -->
         <div class="assistant-body p-3" id="assistant-chat-body">
-            <div class="chat-bubble bot">
-                Hello! 👋 How can I help you today?
-                <div class="timestamp" id="initial-timestamp"></div>
-            </div>
+            <!-- Messages will be added here by JavaScript -->
         </div>
-        
-        <!-- Footer: Contains both quick replies and the text input area -->
         <div class="assistant-footer p-2 border-top">
-             <!-- Quick Replies (visible first) -->
-            <div id="assistant-quick-replies">
-                <button class="quick-reply-btn" data-question="services">What are your services?</button>
-                <button class="quick-reply-btn" data-question="start_project">How do I start a project?</button>
-                <button class="quick-reply-btn" data-question="pricing">How much does it cost?</button>
-            </div>
-            <!-- Text Input Area (hidden initially) -->
-            <div class="input-group" id="assistant-input-area" style="display: none;">
-                <input type="text" id="assistant-input" class="form-control border-0" placeholder="Type 'start over' to reset">
+            <!-- UPDATED: Container for Quick Reply buttons -->
+            <div class="p-2" id="assistant-quick-replies"></div> 
+            
+            <div class="input-group" id="assistant-input-area">
+                <input type="text" id="assistant-input" class="form-control border-0" placeholder="Ask anything...">
                 <button class="btn btn-primary" type="button" id="assistant-send-btn"><i class="bi bi-send"></i></button>
             </div>
         </div>
     </div>
-
-    <!-- The Toggle Button -->
     <button class="btn btn-primary btn-lg rounded-circle shadow-lg" id="assistant-toggle">
         <i class="bi bi-robot fs-4"></i>
     </button>

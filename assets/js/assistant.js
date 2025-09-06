@@ -1,38 +1,38 @@
 /* =================================================================
-    DraftOrbit Studio - AI Assistant (Powered by Gemini)
+    DraftOrbit Studio - AI Assistant (Secure & Dynamic Replies with Markdown)
 ================================================================= */
 
 function initializeAssistant() {
-    // --- Get all necessary elements from the DOM ---
+    // --- 1. Get all necessary elements from the DOM ---
     const assistantWindow = document.getElementById('assistant-window');
     const assistantToggle = document.getElementById('assistant-toggle');
     const closeAssistantBtn = document.getElementById('close-assistant');
     const chatBody = document.getElementById('assistant-chat-body');
-    const inputArea = document.getElementById('assistant-input-area');
     const textInput = document.getElementById('assistant-input');
     const sendBtn = document.getElementById('assistant-send-btn');
+    const quickRepliesContainer = document.getElementById('assistant-quick-replies');
 
-    if (!assistantWindow) return;
+    if (!assistantWindow || !textInput || !chatBody || !quickRepliesContainer) {
+        console.error("Assistant HTML elements not found. Initialization failed.");
+        return;
+    }
 
-    // --- Gemini API Configuration ---
-    const GEMINI_API_KEY = ""; // LEAVE THIS EMPTY
-    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
+    // --- 2. API Configuration (SECURE) ---
+    const SECURE_API_ENDPOINT = '/.netlify/functions/gemini-proxy';
+    let apiChatHistory = [];
 
-    // --- State Management for Conversation History ---
-    let chatHistory = [];
-
-    // --- Chat Helper Functions ---
+    // --- 3. Chat Helper Functions ---
     const addMessage = (html, sender) => {
         const bubble = document.createElement('div');
         bubble.className = `chat-bubble ${sender}`;
-        bubble.innerHTML = html; // Using innerHTML to render potential markdown/links from the AI
+        bubble.innerHTML = html;
         chatBody.appendChild(bubble);
         chatBody.scrollTop = chatBody.scrollHeight;
     };
 
     const showTypingIndicator = () => {
         const indicator = document.createElement('div');
-        indicator.className = 'typing-indicator';
+        indicator.className = 'chat-bubble bot typing-indicator';
         indicator.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
         chatBody.appendChild(indicator);
         chatBody.scrollTop = chatBody.scrollHeight;
@@ -43,88 +43,93 @@ function initializeAssistant() {
         if (indicator) indicator.remove();
     };
 
-    // --- Core Logic: Get AI Response ---
-    const getBotResponse = async (history) => {
-        // System instructions give the AI its persona and rules.
-        const systemPrompt = `You are a helpful and friendly assistant for DraftOrbit Studio, a 3D printing and CAD design company in Mandya, Karnataka. Your goal is to answer user questions concisely. Keep your answers to 2-3 sentences. Do not greet the user unless they greet you first.
-
-        Key Information about DraftOrbit Studio:
-        - Services: High-quality 3D Printing (FDM), Custom CAD Design, Prototyping.
-        - Location: Mandya, Karnataka.
-        - Contact: Users should visit the contact page for quotes or to start a project.
-        - Pricing: Varies by project; users need to submit details on the contact page for a quote.`;
-
-        // We combine the system prompt with the conversation history.
-        const payload = {
-            contents: [
-                { role: "user", parts: [{ text: systemPrompt }] },
-                { role: "model", parts: [{ text: "Understood. I am ready to help." }] },
-                ...history // Add the rest of the conversation
-            ]
-        };
-
+    // --- 4. Core Logic: Get AI Response from our proxy ---
+    const getAIResponse = async (history) => {
         try {
-            const response = await fetch(GEMINI_API_URL, {
+            const response = await fetch(SECURE_API_ENDPOINT, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ history: history })
             });
 
             if (!response.ok) {
-                console.error("API Error Response:", await response.json());
-                return "I'm having a little trouble connecting to my brain right now. Please try again in a moment.";
+                const errorData = await response.json();
+                console.error("Proxy Function Error:", errorData.error);
+                return { response: "I'm having a little trouble connecting to my brain right now. Please try again in a moment.", quickReplies: [] };
             }
 
-            const data = await response.json();
-            const botText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            
-            if (botText) {
-                // Add only the AI's latest response to our client-side history
-                chatHistory.push({ role: "model", parts: [{ text: botText }] });
-            }
-            
-            return botText || "I'm not sure how to answer that. Could you ask in another way?";
+            return await response.json();
 
         } catch (error) {
-            console.error("Error calling Gemini API:", error);
-            return "Sorry, I can't connect to the network right now. Please check your connection.";
+            console.error("Network or Fetch Error:", error);
+            return { response: "Sorry, I can't connect to the network. Please check your internet connection.", quickReplies: [] };
         }
     };
 
-    // --- Event Handler for Sending a Message ---
-    const handleSendMessage = async () => {
-        const userText = textInput.value.trim();
+    // --- 5. Event Handler for Sending a Message (UPDATED) ---
+    const handleSendMessage = async (prefilledText = null) => {
+        const userText = prefilledText || textInput.value.trim();
         if (userText === '') return;
 
         addMessage(userText, 'user');
-        chatHistory.push({ role: "user", parts: [{ text: userText }] });
+        apiChatHistory.push({ role: "user", parts: [{ text: userText }] });
+        
         textInput.value = '';
+        hideQuickReplies();
         showTypingIndicator();
 
-        const botResponse = await getBotResponse(chatHistory);
+        const aiResponseObject = await getAIResponse(apiChatHistory);
+        
         hideTypingIndicator();
-        addMessage(botResponse, 'bot');
+        
+        // Convert the AI's response from Markdown to HTML before displaying it.
+        const formattedHtmlResponse = marked.parse(aiResponseObject.response);
+        addMessage(formattedHtmlResponse, 'bot');
+        
+        apiChatHistory.push({ role: "model", parts: [{ text: aiResponseObject.response }] });
+        
+        if (aiResponseObject.quickReplies && aiResponseObject.quickReplies.length > 0) {
+            renderQuickReplies(aiResponseObject.quickReplies);
+        }
     };
     
-    // --- Initial Setup and Event Listeners ---
-    const setupInitialState = () => {
-        inputArea.style.display = 'flex';
-        const welcomeMessage = "I'm an AI assistant. Feel free to ask me anything about DraftOrbit Studio!";
-        addMessage(welcomeMessage, 'bot');
+    // --- 6. Quick Reply Functions ---
+    const initialQuickReplies = [
+        "What are your services?",
+        "How do I get a quote?",
+        "What materials do you use?"
+    ];
+
+    const renderQuickReplies = (repliesArray) => {
+        quickRepliesContainer.innerHTML = '';
+        const repliesToRender = repliesArray || initialQuickReplies;
+
+        repliesToRender.forEach(replyText => {
+            const button = document.createElement('button');
+            button.className = 'quick-reply-btn';
+            button.textContent = replyText;
+            button.onclick = () => handleSendMessage(replyText);
+            quickRepliesContainer.appendChild(button);
+        });
     };
+
+    const hideQuickReplies = () => {
+        quickRepliesContainer.innerHTML = '';
+    };
+
+    // --- 7. Initial Setup and Event Listeners ---
+    addMessage("Hello! I'm an AI assistant. How can I help you with your 3D printing or CAD design needs today?", 'bot');
 
     assistantToggle.addEventListener('click', () => assistantWindow.classList.toggle('show'));
     closeAssistantBtn.addEventListener('click', () => assistantWindow.classList.remove('show'));
-    sendBtn.addEventListener('click', handleSendMessage);
+    sendBtn.addEventListener('click', () => handleSendMessage(null));
     textInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
-            handleSendMessage();
+            handleSendMessage(null);
         }
     });
     
-    setupInitialState();
-    
-    console.log('✅ AI assistant with conversation history initialized.');
+    renderQuickReplies(); 
+    console.log('✅ AI assistant with Markdown rendering initialized.');
 }
-
