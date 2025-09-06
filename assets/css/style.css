@@ -1,14 +1,25 @@
 /* =================================================================
-   DraftOrbit Studio - Custom Stylesheet
+    DraftOrbit Studio - Custom Stylesheet
 ================================================================= */
 
-/* ===== General & Body Styles ===== */
+/* ===== 1. Variables & Root Styles ===== */
+/* ----------------------------------------------------------------- */
+:root {
+    --color-primary: #0d6efd; /* Bootstrap's default blue */
+    --color-dark-bg: #111827; /* Footer background */
+    --color-text-light: #d1d5db;
+    --color-text-muted: #9ca3af;
+    --color-text-headings: #ffffff;
+    --color-bot-bubble: #f1f0f0;
+}
+
+/* ===== 2. General & Body Styles ===== */
 /* ----------------------------------------------------------------- */
 body {
     padding-top: 50px; 
 }
 
-/* ===== Header / Navbar ===== */
+/* ===== 3. Header / Navbar ===== */
 /* ----------------------------------------------------------------- */
 .header-border {
     border-bottom: 1px solid #e5e7eb;
@@ -18,7 +29,7 @@ body {
     margin-right: 0.75rem;
 }
 
-/* ===== Hero Section ===== */
+/* ===== 4. Hero Section ===== */
 /* ----------------------------------------------------------------- */
 .hero-section {
     background: linear-gradient(rgba(0, 0, 0, 0.585), rgba(0, 0, 0, 0.289)), url('../images/hero-bg.jpg');
@@ -28,118 +39,186 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-}*/
+}
 
-/* ===== Card Components ===== */
+/* IMPROVEMENT: Added text-shadow for better readability */
+.hero-section h1,
+.hero-section .lead {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== 5. Dropdown Menu Animation ===== */
 /* ----------------------------------------------------------------- */
 @media (min-width: 992px) {
-    .navbar .dropdown .dropdown-menu {
-        display: block;
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(10px);
-        transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
-        pointer-events: none;
-    }
     .navbar .dropdown:hover .dropdown-menu {
+        display: block;
         opacity: 1;
         visibility: visible;
         transform: translateY(0);
         pointer-events: auto;
     }
+    .navbar .dropdown .dropdown-menu {
+        display: none; /* Hide by default on desktop */
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(10px);
+        transition: all 0.2s ease-in-out;
+        pointer-events: none;
+    }
 }
 
-/* ===== Footer ===== */
+/* ===== 6. Footer ===== */
 /* ----------------------------------------------------------------- */
 .footer-bg {
-    background-color: #111827;
+    background-color: var(--color-dark-bg);
 }
 .footer-heading {
     text-transform: uppercase;
     font-size: 0.8rem;
     font-weight: bold;
-    color: #9ca3af;
+    color: var(--color-text-muted);
     letter-spacing: 0.05em;
 }
 .footer-link {
-    color: #d1d5db;
+    color: var(--color-text-light);
     text-decoration: none;
     line-height: 2;
     transition: color 0.2s ease-in-out;
 }
 .footer-link:hover {
-    color: #ffffff;
+    color: var(--color-text-headings);
+    text-decoration: underline; /* IMPROVEMENT: Better accessibility */
 }
 .footer-social-icon {
-    color: #9ca3af;
+    color: var(--color-text-muted);
     font-size: 1.5rem;
     margin-left: 1.5rem;
     transition: color 0.2s ease-in-out;
 }
 .footer-social-icon:hover {
-    color: #ffffff;
-}
-.certification-logo {
-    height: 48px;
-    opacity: 0.7;
-    filter: grayscale(100%) brightness(150%);
-}
-.footer-bg .text-muted {
-    color: #6b7280 !important;
-}
-@media (min-width: 768px) {
-    .footer-links-grid > [class*='col-'] {
-        padding-right: 1rem;
-    }
+    color: var(--color-text-headings);
 }
 
-/* =================================================================
-   Animations
-================================================================= */
-
-/* ===== 1. Keyframe Definitions ===== */
+/* ===== 7. Assistant Chat Overlay ===== */
 /* ----------------------------------------------------------------- */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.assistant-overlay {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
 }
-
-@keyframes fadeUp {
-  from {
+.assistant-window {
+    width: 350px;
+    max-width: 90vw;
+    background-color: white;
+    border-radius: 15px;
+    margin-bottom: 15px;
+    overflow: hidden;
     opacity: 0;
     transform: translateY(20px);
-  }
-  to {
+    visibility: hidden;
+    transition: all 0.3s ease-in-out;
+}
+.assistant-window.show {
     opacity: 1;
     transform: translateY(0);
-  }
+    visibility: visible;
+}
+.assistant-header {
+    border-bottom: 1px solid #dee2e6;
+}
+.assistant-body {
+    height: 300px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+#assistant-toggle {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-/* ===== 2. Animation Utility Classes ===== */
+/* IMPROVEMENT: Custom scrollbar for the chat window */
+.assistant-body::-webkit-scrollbar {
+    width: 8px;
+}
+.assistant-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+.assistant-body::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+.assistant-body::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
+
+.chat-bubble {
+    padding: 10px 15px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    max-width: 80%;
+    line-height: 1.4;
+}
+.chat-bubble.bot {
+    background-color: var(--color-bot-bubble);
+    color: #333;
+    border-bottom-left-radius: 5px;
+    align-self: flex-start;
+}
+.chat-bubble.user {
+    background-color: var(--color-primary);
+    color: white;
+    border-bottom-right-radius: 5px;
+    align-self: flex-end;
+}
+.timestamp {
+    font-size: 0.75rem;
+    color: #888;
+    margin-top: 5px;
+}
+.quick-reply-btn {
+    background-color: #e9ecef;
+    border: 1px solid #dee2e6;
+    border-radius: 20px;
+    padding: 8px 15px;
+    margin: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.quick-reply-btn:hover {
+    background-color: #d1d6db;
+}
+
+/* ===== 8. Animations ===== */
 /* ----------------------------------------------------------------- */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 .animated {
-  animation-duration: 0.8s;
-  animation-fill-mode: forwards;
-  animation-timing-function: ease-in-out;
+    animation-duration: 0.8s;
+    animation-fill-mode: forwards;
+    animation-timing-function: ease-in-out;
 }
-.animate-fade-in {
-  animation-name: fadeIn;
-}
-.animate-fade-up {
-  animation-name: fadeUp;
-}
-.animation-delay-200 {
-  animation-delay: 200ms;
-}
-.animation-delay-400 {
-  animation-delay: 400ms;
-}
-.animation-delay-600 {
-  animation-delay: 600ms;
-}
+.animate-fade-in { animation-name: fadeIn; }
+.animate-fade-up { animation-name: fadeUp; }
+.animation-delay-200 { animation-delay: 200ms; }
+.animation-delay-400 { animation-delay: 400ms; }
+.animation-delay-600 { animation-delay: 600ms; }
 
-/* ===== 3. Enhancing Existing Components ===== */
-/* ----------------------------------------------------------------- */
 .card {
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
