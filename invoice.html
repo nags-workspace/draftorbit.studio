@@ -24,15 +24,30 @@
                     <div class="card-body p-0" id="invoice-content">
                         <div class="text-center p-5"><div class="spinner-border"></div></div>
                     </div>
+                    <!-- Payment Button Section -->
+                    <div id="payment-section" class="card-footer text-center p-3 no-print d-none">
+                        <div id="payment-alert" class="alert d-none"></div>
+                        <button id="pay-now-button" class="btn btn-success btn-lg">
+                            <i class="bi bi-shield-check-fill me-2"></i>Pay Now
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    
+    <!-- Razorpay Checkout Script -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
+    <!-- Firebase SDKs (including Functions) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- IMPORTANT: REPLACE WITH YOUR FIREBASE CONFIG ---
             const firebaseConfig = {
                 apiKey: "AIzaSyBEb1sB_AXKGxam3si8m81LPgr3b8HXTvg",
                 authDomain: "draftorbit-web.firebaseapp.com",
@@ -42,94 +57,197 @@
                 appId: "1:687122816959:web:a495dc656f84f2e6b24b0a",
                 measurementId: "G-7DTWGJQ4K9"
             };
+            // --- END OF CONFIG ---
+
             if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
             const db = firebase.firestore();
+            const auth = firebase.auth();
+            const functions = firebase.functions();
+
             const invoiceContent = document.getElementById('invoice-content');
+            const paymentSection = document.getElementById('payment-section');
+            const payNowButton = document.getElementById('pay-now-button');
+            const paymentAlert = document.getElementById('payment-alert');
             const projectId = new URLSearchParams(window.location.search).get('id');
+            
+            // --- IMPORTANT: REPLACE WITH YOUR PUBLIC RAZORPAY KEY ID ---
+            const RAZORPAY_KEY_ID = 'YOUR_KEY_ID_HERE'; 
 
-            if (!projectId) {
-                invoiceContent.innerHTML = '<div class="alert alert-danger m-4">Error: No project ID specified.</div>';
-                return;
-            }
+            let projectData;
+            let currentUser;
 
-            db.collection('projects').doc(projectId).get().then(doc => {
-                if (doc.exists) {
-                    const project = doc.data();
-                    const invoiceDetails = project.invoiceDetails || {};
-                    const billing = project.billingDetails || {};
-                    const finalTotal = invoiceDetails.finalTotal !== undefined ? invoiceDetails.finalTotal : project.quotedPrice;
-
-                    const now = new Date();
-                    const day = now.getDate().toString().padStart(2, '0');
-                    const month = (now.getMonth() + 1).toString().padStart(2, '0');
-                    const year = now.getFullYear();
-                    const hours = now.getHours().toString().padStart(2, '0');
-                    const minutes = now.getMinutes().toString().padStart(2, '0');
-                    const formattedDate = `${day}/${month}/${year}, ${hours}:${minutes}`;
-                    
-                    let lineItemsHtml = `
-                        <tr>
-                            <td>
-                                <p class="fw-bold mb-0">${project.projectName}</p>
-                                <p class="small text-muted mb-0">${project.projectDescription}</p>
-                            </td>
-                            <td class="text-end">₹${project.quotedPrice.toFixed(2)}</td>
-                        </tr>`;
-                                         
-                    if (invoiceDetails.extraAmount) {
-                        lineItemsHtml += `<tr><td>${invoiceDetails.extraDesc || 'Additional Charges'}</td><td class="text-end">₹${invoiceDetails.extraAmount.toFixed(2)}</td></tr>`;
-                    }
-                    if (invoiceDetails.discountAmount) {
-                        lineItemsHtml += `<tr><td>${invoiceDetails.discountDesc || 'Discount'}</td><td class="text-end text-danger">₹${invoiceDetails.discountAmount.toFixed(2)}</td></tr>`;
-                    }
-
-                    const invoiceHtml = `
-                        <div class="p-4 p-md-5 invoice-header">
-                            <div class="row align-items-center">
-                                <div class="col-6"><img src="assets/images/logo.png" style="width: 48px;"><h4 class="fw-bold mt-2 mb-0">DraftOrbit Studio</h4><p class="mb-0 fw-bold mt-2">GSTIN: XXXX1234567889</p></div>
-                                <div class="col-6 text-end"><h2 class="fw-bolder mb-1">INVOICE</h2><p class="text-muted mb-0">#${projectId.substring(0, 8).toUpperCase()}</p></div>
-                            </div>
-                        </div>
-                        <div class="p-4 p-md-5">
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <h6 class="text-muted">FROM:</h6>
-                                    <p class="mb-0 fw-bold">DraftOrbit Studio</p>
-                                    <p class="mb-0">Kattedoddi, B Gowdagere post</p>
-                                    <p class="mb-0">Mandya - 571404</p>
-                                    <p class="mb-0"><strong>Email:</strong> admin@draftorbit.studio</p>
-                                </div>
-                                <div class="col-md-6 text-md-end">
-                                    <h6 class="text-muted">BILL TO:</h6>
-                                    <p class="mb-0 fw-bold">${billing.fullName || project.userName}</p>
-                                    <p class="mb-0">${billing.addressLine1 || ''}</p>
-                                    <p class="mb-0">${billing.addressLine2 || ''}</p>
-                                    <p class="mb-0">${billing.city || ''}, ${billing.state || ''} <br>${billing.pincode || ''}</p>
-                                    <p class="mb-0"><strong>Phone:</strong> ${billing.phone || 'N/A'}</p>
-                                    <h6 class="text-muted mt-3">DATE:</h6><p class="mb-0">${formattedDate}</p>
-                                </div>
-                            </div>
-                            <table class="table"><thead class="bg-light"><tr><th>DESCRIPTION</th><th class="text-end">AMOUNT</th></tr></thead><tbody>${lineItemsHtml}</tbody>
-                            <tfoot>
-                                <tr><td colspan="2" class="border-0"></td></tr>
-                                <tr><td class="text-end border-0"><strong>Total</strong></td><td class="text-end border-0 fs-4 fw-bold text-primary">₹${finalTotal.toFixed(2)}</td></tr>
-                            </tfoot></table>
-                            <hr>
-                            <div class="mt-4">
-                                <h6 class="fw-bold">Notes & Payment Instructions</h6>
-                                <p class="text-muted small">${invoiceDetails.notes || 'Please pay within 15 days. You can make the payment via UPI or Bank Transfer to the details below. Thank you for your business!'}</p>
-                                <div class="bg-light p-3 rounded mt-3">
-                                    <p class="mb-1 fw-bold">UPI: [your-upi-id@okhdfcbank]</p>
-                                    <p class="mb-0 fw-bold">Bank: [Your Bank Name], A/C: [Your Account Number], IFSC: [Your IFSC Code]</p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    invoiceContent.innerHTML = invoiceHtml;
-                } else {
-                    invoiceContent.innerHTML = '<div class="alert alert-danger m-4">Error: Invoice not found or you do not have permission to view it.</div>';
+            auth.onAuthStateChanged(user => {
+                currentUser = user;
+                if (user && projectId) {
+                    loadInvoiceData();
+                } else if (!user) {
+                    window.location.href = 'login.html';
                 }
             });
+            
+            function displayRazorpayCheckout(order) {
+                 const options = {
+                    key: RAZORPAY_KEY_ID,
+                    amount: order.amount,
+                    currency: order.currency,
+                    name: "DraftOrbit Studio",
+                    description: `Payment for Project: ${projectData.projectName}`,
+                    order_id: order.id,
+                    handler: async function (response) {
+                        try {
+                            await db.collection('projects').doc(projectId).update({
+                                status: 'Payment Received',
+                                paymentDetails: {
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    paidAt: firebase.firestore.FieldValue.serverTimestamp()
+                                }
+                            });
+                            showAlert('Payment successful! Your project status has been updated.', 'success');
+                            payNowButton.disabled = true;
+                            payNowButton.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Paid';
+                        } catch(error) {
+                             showAlert('Payment successful, but failed to update status. Please contact support.', 'warning');
+                        }
+                    },
+                    prefill: {
+                        name: currentUser.displayName || projectData.billingDetails.fullName,
+                        email: currentUser.email,
+                        contact: projectData.billingDetails.phone || ''
+                    },
+                    notes: {
+                        projectId: projectId
+                    },
+                    theme: {
+                        color: "#4f46e5"
+                    }
+                };
+                const rzp1 = new Razorpay(options);
+                rzp1.on('payment.failed', function (response) {
+                    showAlert(`Payment failed: ${response.error.description}`, 'danger');
+                });
+                rzp1.open();
+            }
+
+            payNowButton.addEventListener('click', async () => {
+                if (!currentUser) {
+                    alert('Please log in again to make a payment.');
+                    return;
+                }
+
+                payNowButton.disabled = true;
+                payNowButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Creating Secure Order...';
+                
+                const finalTotal = projectData.invoiceDetails?.finalTotal ?? projectData.quotedPrice;
+                const amountInPaise = Math.round(finalTotal * 100);
+
+                try {
+                    const createOrderFunction = functions.httpsCallable('createRazorpayOrder');
+                    const result = await createOrderFunction({
+                        amount: amountInPaise,
+                        currency: 'INR',
+                        projectId: projectId
+                    });
+                    
+                    displayRazorpayCheckout(result.data);
+
+                } catch (error) {
+                    console.error('Error calling cloud function:', error);
+                    showAlert(`Could not initiate payment: ${error.message}`, 'danger');
+                } finally {
+                    payNowButton.disabled = false;
+                    payNowButton.innerHTML = '<i class="bi bi-shield-check-fill me-2"></i>Pay Now';
+                }
+            });
+
+            function showAlert(message, type = 'info') {
+                paymentAlert.textContent = message;
+                paymentAlert.className = `alert alert-${type} mt-3`;
+                paymentAlert.classList.remove('d-none');
+            }
+            
+            function loadInvoiceData() {
+                 if (!projectId) {
+                    invoiceContent.innerHTML = '<div class="alert alert-danger m-4">Error: No project ID specified.</div>';
+                    return;
+                }
+                
+                db.collection('projects').doc(projectId).get().then(doc => {
+                    if (doc.exists && doc.data().userId === currentUser.uid) {
+                        projectData = doc.data();
+                        const invoiceDetails = projectData.invoiceDetails || {};
+                        const billing = projectData.billingDetails || {};
+                        const finalTotal = invoiceDetails.finalTotal !== undefined ? invoiceDetails.finalTotal : projectData.quotedPrice;
+                        const now = new Date();
+                        const formattedDate = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
+                        
+                        let lineItemsHtml = `
+                            <tr>
+                                <td>
+                                    <p class="fw-bold mb-0">${projectData.projectName}</p>
+                                    <p class="small text-muted mb-0">${projectData.projectDescription}</p>
+                                </td>
+                                <td class="text-end">₹${parseFloat(projectData.quotedPrice).toFixed(2)}</td>
+                            </tr>`;
+                                             
+                        if (invoiceDetails.extraAmount) {
+                            lineItemsHtml += `<tr><td>${invoiceDetails.extraDesc || 'Additional Charges'}</td><td class="text-end">₹${parseFloat(invoiceDetails.extraAmount).toFixed(2)}</td></tr>`;
+                        }
+                        if (invoiceDetails.discountAmount) {
+                            lineItemsHtml += `<tr><td>${invoiceDetails.discountDesc || 'Discount'}</td><td class="text-end text-danger">₹${parseFloat(invoiceDetails.discountAmount).toFixed(2)}</td></tr>`;
+                        }
+
+                        const invoiceHtml = `
+                            <div class="p-4 p-md-5 invoice-header">
+                                <div class="row align-items-center">
+                                    <div class="col-6"><img src="assets/images/logo.png" style="width: 48px;"><h4 class="fw-bold mt-2 mb-0">DraftOrbit Studio</h4></div>
+                                    <div class="col-6 text-end"><h2 class="fw-bolder mb-1">INVOICE</h2><p class="text-muted mb-0">#${projectId.substring(0, 8).toUpperCase()}</p></div>
+                                </div>
+                            </div>
+                            <div class="p-4 p-md-5">
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <h6 class="text-muted">FROM:</h6>
+                                        <p class="mb-0 fw-bold">DraftOrbit Studio</p>
+                                        <p class="mb-0">V V Nagar, Mandya, Karnataka 571401</p>
+                                        <p class="mb-0"><strong>Email:</strong> contact@draftorbit.com</p>
+                                    </div>
+                                    <div class="col-md-6 text-md-end">
+                                        <h6 class="text-muted">BILL TO:</h6>
+                                        <p class="mb-0 fw-bold">${billing.fullName || projectData.userName}</p>
+                                        <p class="mb-0">${billing.addressLine1 || ''} ${billing.addressLine2 || ''}</p>
+                                        <p class="mb-0">${billing.city || ''}, ${billing.state || ''} ${billing.pincode || ''}</p>
+                                        <p class="mb-0"><strong>Phone:</strong> ${billing.phone || 'N/A'}</p>
+                                        <h6 class="text-muted mt-3">DATE:</h6><p class="mb-0">${formattedDate}</p>
+                                    </div>
+                                </div>
+                                <table class="table"><thead class="bg-light"><tr><th>DESCRIPTION</th><th class="text-end">AMOUNT</th></tr></thead><tbody>${lineItemsHtml}</tbody>
+                                <tfoot>
+                                    <tr><td colspan="2" class="border-0"></td></tr>
+                                    <tr><td class="text-end border-0"><strong>Total</strong></td><td class="text-end border-0 fs-4 fw-bold text-primary">₹${parseFloat(finalTotal).toFixed(2)}</td></tr>
+                                </tfoot></table>
+                                <hr>
+                                <div class="mt-4">
+                                    <h6 class="fw-bold">Notes</h6>
+                                    <p class="text-muted small">${invoiceDetails.notes || 'Thank you for your business!'}</p>
+                                </div>
+                            </div>
+                        `;
+                        invoiceContent.innerHTML = invoiceHtml;
+                        
+                        const payableStatuses = ['Quote Accepted', 'File Received', 'Submitted']; // Add any other statuses that should be payable
+                        if (payableStatuses.includes(projectData.status)) {
+                             paymentSection.classList.remove('d-none');
+                        } else if (['Payment Received', 'In Progress', 'Shipped'].includes(projectData.status)) {
+                            showAlert('This invoice has already been paid.', 'success');
+                            paymentSection.classList.remove('d-none');
+                            payNowButton.disabled = true;
+                            payNowButton.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Paid';
+                        }
+                    } else {
+                        invoiceContent.innerHTML = '<div class="alert alert-danger m-4">Error: Invoice not found or you do not have permission to view it.</div>';
+                    }
+                });
+            }
         });
     </script>
 </body>
