@@ -3,7 +3,7 @@
 // This file acts as our simple database for all informational pages.
 const pagesData = [
   {
-    id: 1,
+    id: 'terms',
     title: 'Terms of Service',
     content: `
       <p class="text-muted"><strong>Last Updated:</strong> August 8, 2025</p>
@@ -44,7 +44,7 @@ const pagesData = [
     `
   },
   {
-    id: 2,
+    id: 'privacy',
     title: 'Privacy Policy',
     content: `
       <p class="text-muted"><strong>Effective Date:</strong> August 8, 2025</p>
@@ -98,9 +98,38 @@ const pagesData = [
     `
   },
   // You can add more page objects here in the future
+  {
+    id: 'faq',
+    title: 'Frequently Asked Questions',
+    content: `
+### General Questions
+**What is DraftOrbit Studio?**
+We are a 3D printing and custom CAD design studio focused on helping creators, students, and businesses bring their ideas to life through rapid prototyping.
+
+**Where are you located?**
+We are based in Mandya, Karnataka, India.
+
+### Service Questions
+**What kind of 3D printing do you offer?**
+We specialize in Fused Deposition Modeling (FDM), which is excellent for creating strong, functional prototypes and models.
+
+**What materials can you print with?**
+Our primary materials are PLA, PETG, and ABS, each suited for different needs from general-purpose models to durable, heat-resistant parts.
+
+**How do I get a quote for my project?**
+The best way is to visit our [Instant Quote](quote.html) page. You can upload your STL file, select a material, and get a price estimate immediately.
+
+### Order & Shipping Questions
+**What is your typical turnaround time?**
+Most projects are completed and ready for shipping within 3-5 business days. This can vary depending on the complexity and size of your print.
+
+**Do you ship across India?**
+Yes, we provide shipping services to locations all across India.
+    `
+  },
 
 {
-    id: 3,
+    id: 'blog',
     title: 'Our Blog',
     content: `
       <p class="lead mb-5">Latest news, articles, and insights from the studio.</p>
