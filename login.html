@@ -24,8 +24,8 @@
                         
                         <form id="login-form">
                             <div class="mb-3">
-                                <label for="login-identifier" class="form-label">Email or Username</label>
-                                <input type="text" class="form-control" id="login-identifier" required>
+                                <label for="login-email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="login-email" required>
                             </div>
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between">
@@ -71,45 +71,29 @@
             firebase.initializeApp(firebaseConfig);
         }
 
-        // --- The rest of your login logic from before ---
         const loginForm = document.getElementById('login-form');
         const loginError = document.getElementById('login-error');
-        const db = firebase.firestore();
 
-        loginForm.addEventListener('submit', async (e) => {
+        loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            let identifier = document.getElementById('login-identifier').value;
+            const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
-            let emailToLogin;
-            
-            if (identifier.includes('@')) {
-                emailToLogin = identifier;
-            } else {
-                identifier = identifier.toLowerCase();
-                const usersRef = db.collection('users');
-                const usernameQuery = usersRef.where('username', '==', identifier).limit(1).get();
-                const phoneQuery = usersRef.where('phone', '==', identifier).limit(1).get();
 
-                const [usernameSnapshot, phoneSnapshot] = await Promise.all([usernameQuery, phoneQuery]);
+            loginError.classList.add('d-none'); // Hide previous errors
 
-                if (!usernameSnapshot.empty) {
-                    emailToLogin = usernameSnapshot.docs[0].data().email;
-                } else if (!phoneSnapshot.empty) {
-                    emailToLogin = phoneSnapshot.docs[0].data().email;
-                }
-            }
-
-            if (emailToLogin) {
-                firebase.auth().signInWithEmailAndPassword(emailToLogin, password)
-                    .then(() => window.location.href = 'index.html')
-                    .catch(() => {
-                        loginError.textContent = "Incorrect password or login details.";
-                        loginError.classList.remove('d-none');
-                    });
-            } else {
-                loginError.textContent = "User not found. Please check your details.";
-                loginError.classList.remove('d-none');
-            }
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    window.location.href = 'index.html'; // Redirect on success
+                })
+                .catch((error) => {
+                    // Provide a user-friendly error message
+                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                        loginError.textContent = "Incorrect email or password. Please try again.";
+                    } else {
+                        loginError.textContent = "An error occurred. Please try again later.";
+                    }
+                    loginError.classList.remove('d-none');
+                });
         });
     </script>
 </body>
