@@ -1,4 +1,4 @@
-<!-- /navbar.html (Corrected and Improved) -->
+<!-- /navbar.html (UPDATED FOR RESPONSIVE FIX) -->
 <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top header-border">
     <div class="container">
         <!-- Logo and Brand -->
@@ -30,26 +30,18 @@
                         <i class="bi bi-book-fill me-2"></i><span>Resources</span>
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="page.html?id=3">Blog</a></li>
-                        <li><a class="dropdown-item" href="#">Videos</a></li>
-                        <li><a class="dropdown-item" href="#">Changelog</a></li>
-                        <li><a class="dropdown-item" href="#">Status</a></li>
+                        <li><a class="dropdown-item" href="page.html?id=blog">Blog</a></li>
+                        <li><a class="dropdown-item" href="page.html?id=faq">FAQ</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="#">Newsletter</a></li>
                     </ul>
                 </li>
             </ul>
 
-            <!-- Right-Aligned Action Items Group -->
-            <div class="d-flex align-items-center">
-                <!-- LOGGED OUT VIEW -->
-                <div id="logged-out-view">
-                    <a href="login.html" class="nav-link d-inline-block me-2">Login</a>
-                    <a href="signup.html" class="btn btn-primary btn-sm">Sign Up</a>
-                </div>
-
+            <!-- Right-Aligned Action Items (NEW STRUCTURE) -->
+            <ul class="navbar-nav align-items-lg-center">
                 <!-- LOGGED IN VIEW -->
-                <div id="logged-in-view" class="dropdown d-none">
+                <li class="nav-item dropdown d-none" id="logged-in-view-li">
                     <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Account
                     </a>
@@ -60,17 +52,31 @@
                         <li><a class="dropdown-item" href="my-projects.html">My Projects</a></li>
                         <li><a class="dropdown-item" href="#" id="logout-button">Logout</a></li>
                     </ul>
-                </div>
+                </li>
 
-                <!-- Vertical Divider (visible only when logged in) -->
-                <div class="vr mx-2 d-none d-lg-block" id="auth-divider"></div>
+                <!-- LOGGED OUT VIEW -->
+                <li class="nav-item" id="logged-out-view-li-login">
+                    <a href="login.html" class="nav-link">Login</a>
+                </li>
+                <li class="nav-item ms-lg-2 mt-2 mt-lg-0" id="logged-out-view-li-signup">
+                     <a href="signup.html" class="btn btn-primary btn-sm w-100 w-lg-auto">Sign Up</a>
+                </li>
+
+                <!-- Divider (visible only on desktop) -->
+                <li class="nav-item d-none d-lg-block">
+                    <div class="vr mx-2" id="auth-divider"></div>
+                </li>
 
                 <!-- Contact Buttons -->
-                <a href="contact.html" class="btn btn-outline-secondary btn-sm me-2">Get in Touch</a>
-                <a href="quote.html" class="btn btn-primary btn-sm d-flex align-items-center">
-                    Get a Quote <i class="bi bi-arrow-right ms-2"></i>
-                </a>
-            </div>
+                <li class="nav-item mt-2 mt-lg-0">
+                    <a href="contact.html" class="btn btn-outline-secondary btn-sm w-100 w-lg-auto">Get in Touch</a>
+                </li>
+                <li class="nav-item mt-2 mt-lg-0 ms-lg-2">
+                    <a href="quote.html" class="btn btn-primary btn-sm d-flex align-items-center justify-content-center w-100 w-lg-auto">
+                        Get a Quote <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                </li>
+            </ul>
         </div>
     </div>
 </nav>

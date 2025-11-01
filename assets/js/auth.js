@@ -24,15 +24,17 @@ const auth = firebase.auth();
  * It sets up the UI listeners for the navbar.
  */
 function initializeAuthUI() {
-    const loggedInView = document.getElementById('logged-in-view');
-    const loggedOutView = document.getElementById('logged-out-view');
+    // UPDATED: Get references to the new <li> elements
+    const loggedInView = document.getElementById('logged-in-view-li');
+    const loggedOutLogin = document.getElementById('logged-out-view-li-login');
+    const loggedOutSignup = document.getElementById('logged-out-view-li-signup');
     const userEmailDisplay = document.getElementById('user-email-display');
     const logoutButton = document.getElementById('logout-button');
-    const authDivider = document.getElementById('auth-divider'); // Get the divider
+    const authDivider = document.getElementById('auth-divider');
 
     // If the navbar elements aren't on the page, we can't do anything.
-    if (!loggedInView || !loggedOutView || !authDivider) {
-        // This is a warning, not an error. Some pages like admin-login might not have the main navbar.
+    if (!loggedInView || !loggedOutLogin) {
+        console.warn("Auth UI elements not found. Not an auth-enabled page or navbar failed to load.");
         return;
     }
 
@@ -41,7 +43,6 @@ function initializeAuthUI() {
         e.preventDefault();
         auth.signOut().then(() => {
             console.log('User signed out.');
-            // Redirect to home page for a clean user experience after logout.
             window.location.href = 'index.html';
         });
     });
@@ -51,8 +52,9 @@ function initializeAuthUI() {
         if (user) {
             // --- USER IS LOGGED IN ---
             console.log("Auth state changed: User is LOGGED IN", user.email);
-            loggedOutView.classList.add('d-none'); // Hide "Login/Sign Up"
-            loggedInView.classList.remove('d-none'); // Show "Account" dropdown
+            loggedOutLogin.classList.add('d-none');
+            loggedOutSignup.classList.add('d-none');
+            loggedInView.classList.remove('d-none');
             authDivider.classList.remove('d-none'); // Show divider
             if (userEmailDisplay) {
                 userEmailDisplay.textContent = user.email;
@@ -60,12 +62,10 @@ function initializeAuthUI() {
         } else {
             // --- USER IS LOGGED OUT ---
             console.log("Auth state changed: User is LOGGED OUT");
-            loggedOutView.classList.remove('d-none'); // Show "Login/Sign Up"
-            loggedInView.classList.add('d-none'); // Hide "Account" dropdown
+            loggedOutLogin.classList.remove('d-none');
+            loggedOutSignup.classList.remove('d-none');
+            loggedInView.classList.add('d-none');
             authDivider.classList.add('d-none'); // Hide divider
         }
     });
 }
-
-// Call the initialization function. This script is loaded on every page with the navbar.
-initializeAuthUI();
