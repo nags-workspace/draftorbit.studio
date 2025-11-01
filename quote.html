@@ -128,10 +128,9 @@
                 }
             }
             
-            // --- UPDATED: Calculation function now uses live data for everything ---
             function calculatePrice(volumeCm3, materialType, infillPercent, quality) {
                 if (!livePricingData || !livePricingData.materials[materialType] || !livePricingData.qualityMultipliers) {
-                    return { totalPrice: '0.00', volume: 0 }; // Safety check for incomplete data
+                    return { totalPrice: '0.00', volume: 0 };
                 }
 
                 const materialPricePerCm3 = livePricingData.materials[materialType].pricePerCubicCm;
@@ -150,7 +149,72 @@
             }
 
             async function saveOrderToFirestore() {
-                // This function logic remains the same
+                const user = firebase.auth().currentUser;
+                const orderButton = document.getElementById('proceed-to-order-button');
+
+                if (!user) {
+                    alert("Please log in to place an order.");
+                    window.location.href = 'login.html';
+                    return;
+                }
+                if (!currentQuoteData || !projectNameInput.value.trim()) {
+                    alert("Please ensure you have a project name and a calculated quote.");
+                    projectNameInput.focus();
+                    return;
+                }
+
+                orderButton.disabled = true;
+                orderButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Verifying Profile...';
+
+                try {
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    if (!userDoc.exists || !userDoc.data().fullName || !userDoc.data().addressLine1 || !userDoc.data().city) {
+                        alert("Your billing address is incomplete. Please update your profile in 'My Account' before placing an order.");
+                        orderButton.disabled = false;
+                        orderButton.innerHTML = 'Proceed to Order';
+                        return;
+                    }
+                    const userData = userDoc.data();
+
+                    orderButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Placing Order...';
+
+                    const billingDetails = {
+                        fullName: userData.fullName,
+                        phone: userData.phone || 'N/A',
+                        addressLine1: userData.addressLine1,
+                        addressLine2: userData.addressLine2 || '',
+                        city: userData.city,
+                        state: userData.state || '',
+                        pincode: userData.pincode || ''
+                    };
+                    
+                    const projectDescription = `Material: ${currentQuoteData.material.toUpperCase()}, Infill: ${currentQuoteData.infill}%, Quality: ${currentQuoteData.quality}, Volume: ${currentQuoteData.volume} cm³, Dimensions: ${currentQuoteData.dimensions}`;
+
+                    const projectData = {
+                        userId: user.uid,
+                        userName: user.email,
+                        userFullName: billingDetails.fullName,
+                        projectName: projectNameInput.value.trim(),
+                        fileName: currentQuoteData.fileName,
+                        fileUrl: null,
+                        projectDescription: projectDescription,
+                        status: 'Quote Accepted',
+                        quotedPrice: parseFloat(currentQuoteData.price),
+                        submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        billingDetails: billingDetails
+                    };
+
+                    await db.collection('projects').add(projectData);
+                    
+                    alert("Your order has been placed successfully! You will now be redirected to your projects page.");
+                    window.location.href = 'my-projects.html';
+
+                } catch (error) {
+                    console.error("Error placing order: ", error);
+                    alert("An error occurred while placing your order. Please try again.");
+                    orderButton.disabled = false;
+                    orderButton.textContent = 'Proceed to Order';
+                }
             }
 
             function runQuoteCalculation() {
@@ -176,14 +240,18 @@
                         const depth = (box.max.y - box.min.y).toFixed(1);
                         const height = (box.max.z - box.min.z).toFixed(1);
 
+                        // Robust volume calculation
                         let volume = 0;
-                        const positions = geometry.attributes.position.array;
-                        for (let i = 0; i < positions.length; i += 9) {
-                            const p1 = new THREE.Vector3(positions[i], positions[i+1], positions[i+2]);
-                            const p2 = new THREE.Vector3(positions[i+3], positions[i+4], positions[i+5]);
-                            const p3 = new THREE.Vector3(positions[i+6], positions[i+7], positions[i+8]);
-                            volume += p1.dot(p2.cross(p3)) / 6;
+                        const positions = geometry.attributes.position;
+                        const p1 = new THREE.Vector3(), p2 = new THREE.Vector3(), p3 = new THREE.Vector3();
+                        for (let i = 0; i < positions.count; i += 3) {
+                            p1.fromBufferAttribute(positions, i);
+                            p2.fromBufferAttribute(positions, i + 1);
+                            p3.fromBufferAttribute(positions, i + 2);
+                            volume += p1.dot(p2.cross(p3));
                         }
+                        volume /= 6;
+                        
                         const volumeCm3 = Math.abs(volume) / 1000;
                         
                         const priceDetails = calculatePrice(volumeCm3, material, infill, quality);
