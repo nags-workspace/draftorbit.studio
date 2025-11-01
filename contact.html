@@ -4,225 +4,114 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/x-icon" href="assets/images/logo.png">
-    <title>Instant Quote - DraftOrbit Studio</title>
+    <title>Contact Us - DraftOrbit Studio</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .map-responsive { overflow: hidden; padding-bottom: 56.25%; position: relative; height: 0; }
+        .map-responsive iframe { left: 0; top: 0; height: 100%; width: 100%; position: absolute; border:0; }
+    </style>
 </head>
 <body>
     <div id="navbar-placeholder"></div>
 
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="text-center mb-5">
-                    <h1 class="fw-bold">Instant 3D Printing Quote</h1>
-                    <p class="lead text-muted">Upload your model, choose your material, and get an instant price estimate.</p>
+    <header class="py-5 bg-light text-center">
+        <div class="container">
+            <h1 class="display-5 fw-bold">Get in Touch</h1>
+            <p class="lead text-muted">We're here to help and answer any question you might have.</p>
+        </div>
+    </header>
+
+    <section class="py-5">
+        <div class="container">
+            <div class="row g-5">
+                <!-- Contact Information Column -->
+                <div class="col-lg-5">
+                    <h3 class="fw-bold mb-4">Contact Information</h3>
+                    <p>For project inquiries, partnership proposals, or any other questions, please reach out to us using the form or the details below.</p>
+                    
+                    <div class="d-flex mb-3">
+                        <i class="bi bi-geo-alt-fill fs-4 text-primary me-3"></i>
+                        <div>
+                            <strong>Address:</strong><br>
+                            DraftOrbit Studio, V V Nagar,<br>Mandya, Karnataka 571401
+                        </div>
+                    </div>
+                    <div class="d-flex mb-3">
+                        <i class="bi bi-envelope-fill fs-4 text-primary me-3"></i>
+                        <div>
+                            <strong>Email:</strong><br>
+                            <a href="mailto:contact@draftorbit.com">contact@draftorbit.com</a>
+                        </div>
+                    </div>
+                    <div class="d-flex mb-3">
+                        <i class="bi bi-telephone-fill fs-4 text-primary me-3"></i>
+                        <div>
+                            <strong>Phone:</strong><br>
+                            <a href="tel:+910000000000">+91 (000) 000-0000</a>
+                        </div>
+                    </div>
+                     <div class="d-flex">
+                        <i class="bi bi-clock-fill fs-4 text-primary me-3"></i>
+                        <div>
+                            <strong>Business Hours:</strong><br>
+                            Monday - Saturday: 9:00 AM - 6:00 PM
+                        </div>
+                    </div>
                 </div>
 
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body p-4 p-md-5">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h5>1. Name Your Project</h5>
+                <!-- Contact Form Column -->
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                             <!-- IMPORTANT: This form is a template. To make it work, you need a backend service. -->
+                             <!-- Replace YOUR_EMAIL with your actual email in a service like Formspree.io -->
+                            <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
                                 <div class="mb-3">
-                                    <label for="project-name" class="form-label">A unique name for your project</label>
-                                    <input type="text" class="form-control" id="project-name" required>
+                                    <label for="name" class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
                                 </div>
-                                
-                                <h5 class="mt-4">2. Upload Your File</h5>
                                 <div class="mb-3">
-                                    <label for="file-upload" class="form-label">Supports .stl files</label>
-                                    <input class="form-control" type="file" id="file-upload" accept=".stl">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
                                 </div>
-
-                                <h5 class="mt-4">3. Choose Your Material</h5>
                                 <div class="mb-3">
-                                    <label for="material-select" class="form-label">Material</label>
-                                    <select class="form-select" id="material-select">
-                                        <option value="pla" selected>PLA</option>
-                                        <option value="petg">PETG</option>
-                                        <option value="abs">ABS</option>
-                                    </select>
+                                    <label for="subject" class="form-label">Subject</label>
+                                    <input type="text" class="form-control" id="subject" name="subject" required>
                                 </div>
-                            </div>
-                            <div class="col-md-6 border-start">
-                                <h5 class="text-center">4. Your Instant Quote</h5>
-                                <div id="quote-results" class="text-center mt-4">
-                                    <p class="text-muted">Fill out the details to see your price.</p>
+                                <div class="mb-3">
+                                    <label for="message" class="form-label">Message</label>
+                                    <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
                                 </div>
-                            </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary btn-lg">Send Message</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- Map Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="map-responsive rounded shadow-sm">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15582.51893979604!2d76.8837126!3d12.5446261!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3baf71e7c99e1239%3A0x86235778732d810d!2sV.V.Nagar%2C%20Mandya%2C%20Karnataka%20571401%2C%20India!5e0!3m2!1sen!2sus!4v1694123456789!5m2!1sen!2sus" width="600" height="450" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+    </section>
 
     <div id="footer-placeholder"></div>
 
-    <!-- ===== SCRIPTS ===== -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.124.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.124.0/examples/js/loaders/STLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/main.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- NEW: Add the assistant script here -->
     <script src="assets/js/assistant.js"></script> 
-        <!-- ... all your HTML content and other script tags ... -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const fileUpload = document.getElementById('file-upload');
-            const materialSelect = document.getElementById('material-select');
-            const quoteResultsDiv = document.getElementById('quote-results');
-            const projectNameInput = document.getElementById('project-name');
-
-            const db = firebase.firestore();
-            let currentQuoteData = null;
-
-            const pricing = {
-                pricePerCubicCm: { pla: 8, petg: 10, abs: 9 },
-                baseFee: 200
-            };
-
-            function calculatePrice(volumeCm3, materialType) {
-                const materialCost = volumeCm3 * pricing.pricePerCubicCm[materialType];
-                const totalPrice = materialCost + pricing.baseFee;
-                return { totalPrice: totalPrice.toFixed(2), volume: Math.round(volumeCm3 * 100) / 100 };
-            }
-
-            async function saveOrderToFirestore() {
-                const user = firebase.auth().currentUser;
-                const orderButton = document.getElementById('proceed-to-order-button');
-
-                if (!user) {
-                    alert("Please log in to place an order.");
-                    window.location.href = 'login.html';
-                    return;
-                }
-                if (!currentQuoteData || !projectNameInput.value.trim()) {
-                    alert("Please ensure you have a project name and a calculated quote.");
-                    projectNameInput.focus();
-                    return;
-                }
-
-                orderButton.disabled = true;
-                orderButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Verifying Profile...';
-
-                try {
-                    const userDoc = await db.collection('users').doc(user.uid).get();
-                    if (!userDoc.exists || !userDoc.data().fullName || !userDoc.data().addressLine1 || !userDoc.data().city) {
-                        alert("Your billing address is incomplete. Please update your profile in 'My Account' before placing an order.");
-                        orderButton.disabled = false;
-                        orderButton.innerHTML = 'Proceed to Order';
-                        // Optionally, redirect them to the account page
-                        // window.location.href = 'account.html';
-                        return; // Stop the process
-                    }
-                    const userData = userDoc.data();
-
-                    orderButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Placing Order...';
-
-                    const billingDetails = {
-                        fullName: userData.fullName,
-                        phone: userData.phone || 'N/A',
-                        addressLine1: userData.addressLine1,
-                        addressLine2: userData.addressLine2 || '',
-                        city: userData.city,
-                        state: userData.state || '',
-                        pincode: userData.pincode || ''
-                    };
-
-                    const projectData = {
-                        userId: user.uid,
-                        userName: user.email,
-                        userFullName: billingDetails.fullName,
-                        projectName: projectNameInput.value.trim(),
-                        fileName: currentQuoteData.fileName,
-                        fileUrl: null,
-                        projectDescription: `Material: ${currentQuoteData.material.toUpperCase()}, Volume: ${currentQuoteData.volume} cm³, Dimensions: ${currentQuoteData.dimensions}`,
-                        status: 'Quote Accepted',
-                        quotedPrice: parseFloat(currentQuoteData.price),
-                        submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        billingDetails: billingDetails
-                    };
-
-                    await db.collection('projects').add(projectData);
-                    
-                    alert("Your order has been placed successfully! You will now be redirected to your projects page.");
-                    window.location.href = 'my-projects.html';
-
-                } catch (error) {
-                    console.error("Error placing order: ", error);
-                    alert("An error occurred while placing your order. Please try again.");
-                    orderButton.disabled = false;
-                    orderButton.textContent = 'Proceed to Order';
-                }
-            }
-
-            function runQuoteCalculation() {
-                const file = fileUpload.files[0];
-                const material = materialSelect.value;
-                if (!file) { return; }
-
-                quoteResultsDiv.innerHTML = `<div class="spinner-border" role="status"></div><p class="mt-2 text-muted">Analyzing model...</p>`;
-
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    try {
-                        const loader = new THREE.STLLoader();
-                        const geometry = loader.parse(event.target.result);
-                        geometry.computeBoundingBox();
-                        const box = geometry.boundingBox;
-                        const width = (box.max.x - box.min.x).toFixed(1);
-                        const depth = (box.max.y - box.min.y).toFixed(1);
-                        const height = (box.max.z - box.min.z).toFixed(1);
-
-                        let volume = 0;
-                        const positions = geometry.attributes.position.array;
-                        for (let i = 0; i < positions.length; i += 9) {
-                            const p1 = new THREE.Vector3(positions[i], positions[i+1], positions[i+2]);
-                            const p2 = new THREE.Vector3(positions[i+3], positions[i+4], positions[i+5]);
-                            const p3 = new THREE.Vector3(positions[i+6], positions[i+7], positions[i+8]);
-                            volume += p1.dot(p2.cross(p3)) / 6;
-                        }
-                        const volumeCm3 = Math.abs(volume) / 1000;
-                        const priceDetails = calculatePrice(volumeCm3, material);
-
-                        currentQuoteData = {
-                            price: priceDetails.totalPrice,
-                            volume: priceDetails.volume,
-                            dimensions: `${width} x ${depth} x ${height} mm`,
-                            material: material,
-                            fileName: file.name
-                        };
-
-                        quoteResultsDiv.innerHTML = `
-                            <h2 class="display-4 fw-bold text-primary">₹${priceDetails.totalPrice}</h2>
-                            <p class="text-muted">Based on your selections</p><hr>
-                            <ul class="list-unstyled text-start">
-                                <li><strong><i class="bi bi-arrows-angle-expand me-2"></i>Dimensions:</strong> ${currentQuoteData.dimensions}</li>
-                                <li><strong><i class="bi bi-box-seam me-2"></i>Model Volume:</strong> ${currentQuoteData.volume} cm³</li>
-                            </ul>
-                            <div class="d-grid mt-3">
-                                <button class="btn btn-success" id="proceed-to-order-button">Proceed to Order</button>
-                            </div>
-                        `;
-                        document.getElementById('proceed-to-order-button').addEventListener('click', saveOrderToFirestore);
-                    } catch (error) {
-                        quoteResultsDiv.innerHTML = `<div class="alert alert-danger"><strong>Error:</strong> Could not read the STL file. It may be corrupted.</div>`;
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            }
-
-            fileUpload.addEventListener('change', runQuoteCalculation);
-            materialSelect.addEventListener('change', runQuoteCalculation);
-        });
-    </script>
 </body>
 </html>
