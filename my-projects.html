@@ -22,7 +22,6 @@
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- NEW: Add the assistant script here -->
     <script src="assets/js/assistant.js"></script> 
     <script>
         const projectsContainer = document.getElementById('projects-list-container');
@@ -36,7 +35,7 @@
         function getStatusBadge(status) {
             let badgeClass = 'bg-secondary';
             switch (status) {
-                case 'Quote Accepted': badgeClass = 'bg-success'; break; // NEW
+                case 'Quote Accepted': badgeClass = 'bg-success'; break;
                 case 'Submitted': badgeClass = 'bg-primary'; break;
                 case 'File Received': badgeClass = 'bg-info text-dark'; break;
                 case 'Quote Ready': badgeClass = 'bg-success'; break;
@@ -47,50 +46,51 @@
             return `<span class="badge ${badgeClass}">${status}</span>`;
         }
 
-        // This is inside your my-projects.html's <script> tag
 
-function loadUserProjects(userId) {
-    db.collection("projects").where("userId", "==", userId).orderBy("submittedAt", "desc").get()
-        .then(snapshot => {
-            if (snapshot.empty) { projectsContainer.innerHTML = '<div class="text-center p-5 bg-light rounded"><h4>You have not placed any orders yet.</h4></div>'; return; }
-            let html = '';
-            snapshot.forEach(doc => {
-                const project = doc.data();
-                const projectId = doc.id; // Get the project ID
-                
-                let actionButtonsHtml = '';
-                if (project.fileUrl) {
-                    const viewerLink = `viewer.html?model=${encodeURIComponent(project.fileUrl)}&name=${encodeURIComponent(project.fileName)}`;
-                    actionButtonsHtml += `<a href="${viewerLink}" class="btn btn-sm btn-outline-info"><i class="bi bi-eye-fill me-1"></i> View Model</a>`;
-                }
-                
-                // === THIS IS THE NEW SECTION ===
-                // Only show the invoice button if the admin has enabled it
-                if (project.invoiceEnabled) {
-                    actionButtonsHtml += `<a href="invoice.html?id=${projectId}" target="_blank" class="btn btn-sm btn-success ms-2"><i class="bi bi-receipt-cutoff me-1"></i> View Invoice</a>`;
-                }
-                // === END OF NEW SECTION ===
+        function loadUserProjects(userId) {
+            db.collection("projects").where("userId", "==", userId).orderBy("submittedAt", "desc").get()
+                .then(snapshot => {
+                    if (snapshot.empty) { 
+                        projectsContainer.innerHTML = '<div class="text-center p-5 bg-light rounded"><h4>You have not placed any orders yet.</h4></div>'; 
+                        return; 
+                    }
+                    let html = '';
+                    snapshot.forEach(doc => {
+                        const project = doc.data();
+                        const projectId = doc.id;
+                        
+                        let actionButtonsHtml = '';
+                        if (project.fileUrl) {
+                            const viewerLink = `viewer.html?model=${encodeURIComponent(project.fileUrl)}&name=${encodeURIComponent(project.fileName)}`;
+                            actionButtonsHtml += `<a href="${viewerLink}" class="btn btn-sm btn-outline-info"><i class="bi bi-eye-fill me-1"></i> View Model</a>`;
+                        }
+                        
+                        if (project.invoiceEnabled) {
+                            actionButtonsHtml += `<a href="invoice.html?id=${projectId}" target="_blank" class="btn btn-sm btn-success ms-2"><i class="bi bi-receipt-cutoff me-1"></i> View Invoice</a>`;
+                        }
 
-                const priceHtml = project.quotedPrice ? `<h5 class="mb-1 text-primary fw-bold">₹${project.quotedPrice.toFixed(2)}</h5>` : `<h5 class="mb-1">${project.projectName}</h5>`;
+                        // --- THIS IS THE UPDATED LOGIC ---
+                        // Check for the final total from the invoice, otherwise use the original quoted price.
+                        const finalPrice = project.invoiceDetails?.finalTotal ?? project.quotedPrice;
+                        const priceHtml = finalPrice ? `<h5 class="mb-1 text-primary fw-bold">₹${parseFloat(finalPrice).toFixed(2)}</h5>` : `<h5 class="mb-1">${project.projectName}</h5>`;
+                        // --- END OF UPDATED LOGIC ---
 
-                html += `
-                    <div class="list-group-item list-group-item-action flex-column align-items-start mb-3 border-0 shadow-sm rounded">
-                        <div class="d-flex w-100 justify-content-between">
-                            ${priceHtml}
-                            <small class="text-muted">${project.submittedAt.toDate().toLocaleDateString()}</small>
-                        </div>
-                        <p class="mb-1 text-muted">${project.projectDescription || 'No description provided.'}</p>
-                        <div class="d-flex w-100 justify-content-between align-items-center mt-3">
-                            <div>${getStatusBadge(project.status)}</div>
-                            <div>${actionButtonsHtml}</div>
-                        </div>
-                    </div>`;
-            });
-            projectsContainer.innerHTML = html;
-        });
-}
-
-        
+                        html += `
+                            <div class="list-group-item list-group-item-action flex-column align-items-start mb-3 border-0 shadow-sm rounded">
+                                <div class="d-flex w-100 justify-content-between">
+                                    ${priceHtml}
+                                    <small class="text-muted">${project.submittedAt.toDate().toLocaleDateString()}</small>
+                                </div>
+                                <p class="mb-1 text-muted">${project.projectDescription || 'No description provided.'}</p>
+                                <div class="d-flex w-100 justify-content-between align-items-center mt-3">
+                                    <div>${getStatusBadge(project.status)}</div>
+                                    <div>${actionButtonsHtml}</div>
+                                </div>
+                            </div>`;
+                    });
+                    projectsContainer.innerHTML = html;
+                });
+        }
     </script>
 </body>
 </html>
