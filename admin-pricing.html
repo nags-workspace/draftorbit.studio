@@ -37,7 +37,6 @@
                             <input type="number" class="form-control" id="base-fee" placeholder="e.g., 200" disabled>
                         </div>
                     </div>
-                    <!-- NEW: Quality Multiplier Inputs -->
                     <div class="col-md-8">
                         <label class="form-label">Print Quality Multipliers</label>
                         <div class="input-group">
@@ -93,7 +92,6 @@
             const db = firebase.firestore();
             const pricingDocRef = db.collection('settings').doc('pricing');
 
-            // --- UI ELEMENT REFERENCES (with new ones) ---
             const baseFeeInput = document.getElementById('base-fee');
             const qualityDraftInput = document.getElementById('quality-draft');
             const qualityStandardInput = document.getElementById('quality-standard');
@@ -133,13 +131,11 @@
                         const data = doc.data();
                         baseFeeInput.value = data.baseFee || 0;
                         
-                        // Load quality multipliers, providing defaults if they don't exist
                         if (data.qualityMultipliers) {
                             qualityDraftInput.value = data.qualityMultipliers.draft || 0.8;
                             qualityStandardInput.value = data.qualityMultipliers.standard || 1.0;
                             qualityFineInput.value = data.qualityMultipliers.fine || 1.6;
                         } else {
-                            // Set defaults if the whole object is missing
                             qualityDraftInput.value = 0.8;
                             qualityStandardInput.value = 1.0;
                             qualityFineInput.value = 1.6;
@@ -162,6 +158,7 @@
             editButton.addEventListener('click', () => setEditMode(true));
             cancelButton.addEventListener('click', () => { loadPricingData(); setEditMode(false); });
 
+            // --- THIS IS THE UPDATED SAVE FUNCTION ---
             saveButton.addEventListener('click', () => {
                 const updatedData = {
                     baseFee: parseFloat(baseFeeInput.value) || 0,
@@ -172,11 +169,15 @@
                     }
                 };
 
-                pricingDocRef.update(updatedData).then(() => {
+                // Use .set with { merge: true } to create or update fields without deleting others
+                pricingDocRef.set(updatedData, { merge: true }).then(() => {
                     showAlert('General settings saved!', 'success');
                     setEditMode(false);
+                }).catch(error => {
+                    showAlert('Error saving settings: ' + error.message, 'danger');
                 });
             });
+            // --- END OF UPDATE ---
 
             addMaterialButton.addEventListener('click', () => {
                 const name = prompt("Enter the material name (e.g., PLA, PETG):");
@@ -193,10 +194,12 @@
             
             window.deleteMaterial = (key) => {
                 if (confirm(`Are you sure you want to delete ${currentMaterials[key].name}?`)) {
-                    delete currentMaterials[key];
-                    pricingDocRef.update({ materials: currentMaterials }).then(() => {
-                        showAlert('Material deleted.', 'warning');
-                        loadPricingData();
+                    // To delete a field within a map, you need to use FieldValue.delete()
+                    const updates = {};
+                    updates[`materials.${key}`] = firebase.firestore.FieldValue.delete();
+                    pricingDocRef.update(updates).then(() => {
+                         showAlert('Material deleted.', 'warning');
+                         loadPricingData();
                     });
                 }
             }
@@ -205,7 +208,7 @@
                 adminAlert.textContent = message;
                 adminAlert.className = `alert alert-${type}`;
                 adminAlert.classList.remove('d-none');
-                setTimeout(() => adminAlert.classList.add('d-none'), 3000);
+                setTimeout(() => adminAlert.classList.add('d-none'), 4000);
             }
         });
     </script>
