@@ -29,13 +29,26 @@
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header">General Settings</div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <label for="base-fee" class="form-label">Base Fee</label>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="base-fee" class="form-label">Base Fee (INR)</label>
                         <div class="input-group">
                             <span class="input-group-text">₹</span>
-                            <input type="number" class="form-control" id="base-fee" placeholder="e.g., 300" disabled>
+                            <input type="number" class="form-control" id="base-fee" placeholder="e.g., 200" disabled>
                         </div>
+                    </div>
+                    <!-- NEW: Quality Multiplier Inputs -->
+                    <div class="col-md-8">
+                        <label class="form-label">Print Quality Multipliers</label>
+                        <div class="input-group">
+                             <span class="input-group-text">Draft</span>
+                             <input type="number" step="0.1" class="form-control" id="quality-draft" placeholder="e.g., 0.8" disabled>
+                             <span class="input-group-text">Standard</span>
+                             <input type="number" step="0.1" class="form-control" id="quality-standard" placeholder="e.g., 1.0" disabled>
+                             <span class="input-group-text">Fine</span>
+                             <input type="number" step="0.1" class="form-control" id="quality-fine" placeholder="e.g., 1.6" disabled>
+                        </div>
+                         <small class="form-text text-muted">These values multiply the Base Fee to account for print time. Standard should typically be 1.0.</small>
                     </div>
                 </div>
                 <div class="d-flex justify-content-end mt-3">
@@ -80,7 +93,12 @@
             const db = firebase.firestore();
             const pricingDocRef = db.collection('settings').doc('pricing');
 
+            // --- UI ELEMENT REFERENCES (with new ones) ---
             const baseFeeInput = document.getElementById('base-fee');
+            const qualityDraftInput = document.getElementById('quality-draft');
+            const qualityStandardInput = document.getElementById('quality-standard');
+            const qualityFineInput = document.getElementById('quality-fine');
+            
             const materialsTableBody = document.getElementById('materials-table-body');
             const addMaterialButton = document.getElementById('add-material-button');
             const adminAlert = document.getElementById('admin-alert');
@@ -89,6 +107,7 @@
             const saveButton = document.getElementById('save-button');
             const cancelButton = document.getElementById('cancel-button');
 
+            const allSettingInputs = [baseFeeInput, qualityDraftInput, qualityStandardInput, qualityFineInput];
             let currentMaterials = {};
 
             firebase.auth().onAuthStateChanged(user => {
@@ -99,14 +118,10 @@
                 }
             });
 
-            logoutButton.addEventListener('click', () => {
-                firebase.auth().signOut().then(() => {
-                    window.location.href = 'admin-login.html';
-                });
-            });
+            logoutButton.addEventListener('click', () => firebase.auth().signOut().then(() => window.location.href = 'admin-login.html'));
 
             function setEditMode(isEditing) {
-                baseFeeInput.disabled = !isEditing;
+                allSettingInputs.forEach(input => input.disabled = !isEditing);
                 editButton.classList.toggle('d-none', isEditing);
                 saveButton.classList.toggle('d-none', !isEditing);
                 cancelButton.classList.toggle('d-none', !isEditing);
@@ -117,6 +132,19 @@
                     if (doc.exists) {
                         const data = doc.data();
                         baseFeeInput.value = data.baseFee || 0;
+                        
+                        // Load quality multipliers, providing defaults if they don't exist
+                        if (data.qualityMultipliers) {
+                            qualityDraftInput.value = data.qualityMultipliers.draft || 0.8;
+                            qualityStandardInput.value = data.qualityMultipliers.standard || 1.0;
+                            qualityFineInput.value = data.qualityMultipliers.fine || 1.6;
+                        } else {
+                            // Set defaults if the whole object is missing
+                            qualityDraftInput.value = 0.8;
+                            qualityStandardInput.value = 1.0;
+                            qualityFineInput.value = 1.6;
+                        }
+                        
                         currentMaterials = data.materials || {};
                         renderMaterialsTable();
                     }
@@ -124,31 +152,30 @@
             }
 
             function renderMaterialsTable() {
-                let html = '';
                 const sortedKeys = Object.keys(currentMaterials).sort();
-                for (const key of sortedKeys) {
+                materialsTableBody.innerHTML = sortedKeys.length ? sortedKeys.map(key => {
                     const material = currentMaterials[key];
-                    html += `<tr><td>${material.name}</td><td>${material.pricePerCubicCm}</td><td><button class="btn btn-sm btn-outline-danger" onclick="deleteMaterial('${key}')">Delete</button></td></tr>`;
-                }
-                materialsTableBody.innerHTML = html || '<tr><td colspan="3" class="text-center">No materials added yet.</td></tr>';
+                    return `<tr><td>${material.name}</td><td>${material.pricePerCubicCm}</td><td><button class="btn btn-sm btn-outline-danger" onclick="deleteMaterial('${key}')">Delete</button></td></tr>`;
+                }).join('') : '<tr><td colspan="3" class="text-center">No materials added yet.</td></tr>';
             }
 
-            editButton.addEventListener('click', () => {
-                setEditMode(true);
-            });
-
-            cancelButton.addEventListener('click', () => {
-                loadPricingData();
-                setEditMode(false);
-            });
+            editButton.addEventListener('click', () => setEditMode(true));
+            cancelButton.addEventListener('click', () => { loadPricingData(); setEditMode(false); });
 
             saveButton.addEventListener('click', () => {
-                const newBaseFee = parseFloat(baseFeeInput.value);
-                pricingDocRef.update({ baseFee: newBaseFee })
-                    .then(() => {
-                        showAlert('General settings saved!', 'success');
-                        setEditMode(false);
-                    });
+                const updatedData = {
+                    baseFee: parseFloat(baseFeeInput.value) || 0,
+                    qualityMultipliers: {
+                        draft: parseFloat(qualityDraftInput.value) || 0.8,
+                        standard: parseFloat(qualityStandardInput.value) || 1.0,
+                        fine: parseFloat(qualityFineInput.value) || 1.6
+                    }
+                };
+
+                pricingDocRef.update(updatedData).then(() => {
+                    showAlert('General settings saved!', 'success');
+                    setEditMode(false);
+                });
             });
 
             addMaterialButton.addEventListener('click', () => {
@@ -157,22 +184,20 @@
                 const price = parseFloat(prompt(`Enter the price per cm³ for ${name}:`));
                 if (isNaN(price)) { alert('Invalid price entered.'); return; }
                 const key = name.toLowerCase().replace(/\s/g, '');
-                currentMaterials[key] = { name: name, pricePerCubicCm: price };
-                pricingDocRef.update({ materials: currentMaterials })
-                    .then(() => {
-                        showAlert('Material added successfully!', 'success');
-                        loadPricingData();
-                    });
+                currentMaterials[key] = { name: name.trim(), pricePerCubicCm: price };
+                pricingDocRef.update({ materials: currentMaterials }).then(() => {
+                    showAlert('Material added successfully!', 'success');
+                    loadPricingData();
+                });
             });
             
-            window.deleteMaterial = function(key) {
+            window.deleteMaterial = (key) => {
                 if (confirm(`Are you sure you want to delete ${currentMaterials[key].name}?`)) {
                     delete currentMaterials[key];
-                    pricingDocRef.update({ materials: currentMaterials })
-                        .then(() => {
-                            showAlert('Material deleted.', 'warning');
-                            loadPricingData();
-                        });
+                    pricingDocRef.update({ materials: currentMaterials }).then(() => {
+                        showAlert('Material deleted.', 'warning');
+                        loadPricingData();
+                    });
                 }
             }
 
