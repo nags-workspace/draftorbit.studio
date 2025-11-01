@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale-1">
     <link rel="icon" type="image/x-icon" href="assets/images/logo.png">
     <title>Instant Quote - DraftOrbit Studio</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -17,26 +17,24 @@
             <div class="col-lg-8">
                 <div class="text-center mb-5">
                     <h1 class="fw-bold">Instant 3D Printing Quote</h1>
-                    <p class="lead text-muted">Upload your model, choose your material, and get an instant price estimate.</p>
+                    <p class="lead text-muted">Upload your model, choose your options, and get an instant price estimate.</p>
                 </div>
 
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4 p-md-5">
                         <div class="row">
                             <div class="col-md-6">
-                                <h5>1. Name Your Project</h5>
+                                <h5>1. Project & File</h5>
                                 <div class="mb-3">
-                                    <label for="project-name" class="form-label">A unique name for your project</label>
+                                    <label for="project-name" class="form-label">Project Name</label>
                                     <input type="text" class="form-control" id="project-name" required>
                                 </div>
-                                
-                                <h5 class="mt-4">2. Upload Your File</h5>
                                 <div class="mb-3">
-                                    <label for="file-upload" class="form-label">Supports .stl files</label>
+                                    <label for="file-upload" class="form-label">Upload your .stl file</label>
                                     <input class="form-control" type="file" id="file-upload" accept=".stl">
                                 </div>
 
-                                <h5 class="mt-4">3. Choose Your Material</h5>
+                                <h5 class="mt-4">2. Print Settings</h5>
                                 <div class="mb-3">
                                     <label for="material-select" class="form-label">Material</label>
                                     <select class="form-select" id="material-select">
@@ -45,9 +43,25 @@
                                         <option value="abs">ABS</option>
                                     </select>
                                 </div>
+                                
+                                <!-- NEW: Infill Percentage Slider -->
+                                <div class="mb-3">
+                                    <label for="infill-slider" class="form-label">Infill Percentage: <span id="infill-value" class="fw-bold">20</span>%</label>
+                                    <input type="range" class="form-range" id="infill-slider" min="10" max="100" step="5" value="20">
+                                </div>
+                                
+                                <!-- NEW: Print Quality Selector -->
+                                <div class="mb-3">
+                                     <label for="quality-select" class="form-label">Print Quality</label>
+                                     <select class="form-select" id="quality-select">
+                                        <option value="standard" selected>Standard (0.2mm layers)</option>
+                                        <option value="draft">Draft (0.28mm layers)</option>
+                                        <option value="fine">Fine Detail (0.12mm layers)</option>
+                                     </select>
+                                </div>
                             </div>
                             <div class="col-md-6 border-start">
-                                <h5 class="text-center">4. Your Instant Quote</h5>
+                                <h5 class="text-center">3. Your Instant Quote</h5>
                                 <div id="quote-results" class="text-center mt-4">
                                     <p class="text-muted">Fill out the details to see your price.</p>
                                 </div>
@@ -69,96 +83,94 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/main.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- NEW: Add the assistant script here -->
     <script src="assets/js/assistant.js"></script> 
-        <!-- ... all your HTML content and other script tags ... -->
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Get all interactive elements
             const fileUpload = document.getElementById('file-upload');
             const materialSelect = document.getElementById('material-select');
+            const infillSlider = document.getElementById('infill-slider');
+            const infillValueSpan = document.getElementById('infill-value');
+            const qualitySelect = document.getElementById('quality-select');
             const quoteResultsDiv = document.getElementById('quote-results');
             const projectNameInput = document.getElementById('project-name');
 
             const db = firebase.firestore();
             let currentQuoteData = null;
 
+            // --- UPDATED PRICING MODEL ---
             const pricing = {
                 pricePerCubicCm: { pla: 8, petg: 10, abs: 9 },
-                baseFee: 200
+                // Base fee now represents the cost for a standard quality print
+                baseFee: 200, 
+                // Multipliers for print time and complexity based on quality
+                qualityMultipliers: {
+                    draft: 0.8,    // Cheaper, faster
+                    standard: 1.0, // Baseline
+                    fine: 1.6      // More expensive, much slower
+                }
             };
 
-            function calculatePrice(volumeCm3, materialType) {
-                const materialCost = volumeCm3 * pricing.pricePerCubicCm[materialType];
-                const totalPrice = materialCost + pricing.baseFee;
-                return { totalPrice: totalPrice.toFixed(2), volume: Math.round(volumeCm3 * 100) / 100 };
+            // --- UPDATED CALCULATION FUNCTION ---
+            function calculatePrice(volumeCm3, materialType, infillPercent, quality) {
+                // 1. Calculate the actual volume of material used based on infill
+                const effectiveMaterialVolume = volumeCm3 * (infillPercent / 100);
+                const materialCost = effectiveMaterialVolume * pricing.pricePerCubicCm[materialType];
+
+                // 2. Calculate the time/complexity cost based on quality
+                const timeAndComplexityCost = pricing.baseFee * pricing.qualityMultipliers[quality];
+
+                // 3. Total price is the sum of material and time costs
+                const totalPrice = materialCost + timeAndComplexityCost;
+                
+                return { 
+                    totalPrice: totalPrice.toFixed(2), 
+                    volume: Math.round(volumeCm3 * 100) / 100 
+                };
             }
 
             async function saveOrderToFirestore() {
                 const user = firebase.auth().currentUser;
                 const orderButton = document.getElementById('proceed-to-order-button');
-
-                if (!user) {
-                    alert("Please log in to place an order.");
-                    window.location.href = 'login.html';
-                    return;
-                }
+                if (!user) { window.location.href = 'login.html'; return; }
                 if (!currentQuoteData || !projectNameInput.value.trim()) {
                     alert("Please ensure you have a project name and a calculated quote.");
-                    projectNameInput.focus();
                     return;
                 }
-
                 orderButton.disabled = true;
-                orderButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Verifying Profile...';
-
+                orderButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Placing Order...';
                 try {
                     const userDoc = await db.collection('users').doc(user.uid).get();
-                    if (!userDoc.exists || !userDoc.data().fullName || !userDoc.data().addressLine1 || !userDoc.data().city) {
-                        alert("Your billing address is incomplete. Please update your profile in 'My Account' before placing an order.");
-                        orderButton.disabled = false;
-                        orderButton.innerHTML = 'Proceed to Order';
-                        // Optionally, redirect them to the account page
-                        // window.location.href = 'account.html';
-                        return; // Stop the process
+                    if (!userDoc.exists || !userDoc.data().fullName || !userDoc.data().addressLine1) {
+                         alert("Your billing address is incomplete. Please update your profile in 'My Account' before placing an order.");
+                         orderButton.disabled = false;
+                         orderButton.innerHTML = 'Proceed to Order';
+                         return;
                     }
                     const userData = userDoc.data();
-
-                    orderButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Placing Order...';
-
                     const billingDetails = {
-                        fullName: userData.fullName,
-                        phone: userData.phone || 'N/A',
-                        addressLine1: userData.addressLine1,
-                        addressLine2: userData.addressLine2 || '',
-                        city: userData.city,
-                        state: userData.state || '',
-                        pincode: userData.pincode || ''
+                        fullName: userData.fullName, phone: userData.phone, addressLine1: userData.addressLine1,
+                        addressLine2: userData.addressLine2, city: userData.city, state: userData.state, pincode: userData.pincode
                     };
+                    // ADD the new quote details to the description
+                    const projectDescription = `Material: ${currentQuoteData.material.toUpperCase()}, Infill: ${currentQuoteData.infill}%, Quality: ${currentQuoteData.quality}, Volume: ${currentQuoteData.volume} cm³, Dimensions: ${currentQuoteData.dimensions}`;
 
                     const projectData = {
-                        userId: user.uid,
-                        userName: user.email,
-                        userFullName: billingDetails.fullName,
-                        projectName: projectNameInput.value.trim(),
-                        fileName: currentQuoteData.fileName,
-                        fileUrl: null,
-                        projectDescription: `Material: ${currentQuoteData.material.toUpperCase()}, Volume: ${currentQuoteData.volume} cm³, Dimensions: ${currentQuoteData.dimensions}`,
-                        status: 'Quote Accepted',
+                        userId: user.uid, userName: user.email, userFullName: billingDetails.fullName,
+                        projectName: projectNameInput.value.trim(), fileName: currentQuoteData.fileName, fileUrl: null,
+                        projectDescription: projectDescription, status: 'Quote Accepted',
                         quotedPrice: parseFloat(currentQuoteData.price),
                         submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
                         billingDetails: billingDetails
                     };
-
                     await db.collection('projects').add(projectData);
-                    
-                    alert("Your order has been placed successfully! You will now be redirected to your projects page.");
+                    alert("Your order has been placed successfully! Redirecting to your projects page.");
                     window.location.href = 'my-projects.html';
-
                 } catch (error) {
                     console.error("Error placing order: ", error);
-                    alert("An error occurred while placing your order. Please try again.");
+                    alert("An error occurred while placing your order.");
                     orderButton.disabled = false;
                     orderButton.textContent = 'Proceed to Order';
                 }
@@ -166,7 +178,11 @@
 
             function runQuoteCalculation() {
                 const file = fileUpload.files[0];
+                // Get values from the new inputs
                 const material = materialSelect.value;
+                const infill = parseInt(infillSlider.value);
+                const quality = qualitySelect.value;
+
                 if (!file) { return; }
 
                 quoteResultsDiv.innerHTML = `<div class="spinner-border" role="status"></div><p class="mt-2 text-muted">Analyzing model...</p>`;
@@ -191,22 +207,28 @@
                             volume += p1.dot(p2.cross(p3)) / 6;
                         }
                         const volumeCm3 = Math.abs(volume) / 1000;
-                        const priceDetails = calculatePrice(volumeCm3, material);
+                        
+                        // Pass the new values to the calculation function
+                        const priceDetails = calculatePrice(volumeCm3, material, infill, quality);
 
+                        // Store all details for the order submission
                         currentQuoteData = {
-                            price: priceDetails.totalPrice,
-                            volume: priceDetails.volume,
+                            price: priceDetails.totalPrice, volume: priceDetails.volume,
                             dimensions: `${width} x ${depth} x ${height} mm`,
-                            material: material,
+                            material: material, infill: infill, quality: quality, // Store new values
                             fileName: file.name
                         };
 
+                        // --- UPDATED DISPLAY TO SHOW ALL DETAILS ---
+                        const qualityText = quality.charAt(0).toUpperCase() + quality.slice(1);
                         quoteResultsDiv.innerHTML = `
                             <h2 class="display-4 fw-bold text-primary">₹${priceDetails.totalPrice}</h2>
                             <p class="text-muted">Based on your selections</p><hr>
-                            <ul class="list-unstyled text-start">
-                                <li><strong><i class="bi bi-arrows-angle-expand me-2"></i>Dimensions:</strong> ${currentQuoteData.dimensions}</li>
+                            <ul class="list-unstyled text-start small">
+                                <li><strong><i class="bi bi-gear-wide-connected me-2"></i>Quality:</strong> ${qualityText}</li>
+                                <li><strong><i class="bi bi-grid-3x3-gap-fill me-2"></i>Infill:</strong> ${infill}%</li>
                                 <li><strong><i class="bi bi-box-seam me-2"></i>Model Volume:</strong> ${currentQuoteData.volume} cm³</li>
+                                <li><strong><i class="bi bi-arrows-angle-expand me-2"></i>Dimensions:</strong> ${currentQuoteData.dimensions}</li>
                             </ul>
                             <div class="d-grid mt-3">
                                 <button class="btn btn-success" id="proceed-to-order-button">Proceed to Order</button>
@@ -219,7 +241,15 @@
                 };
                 reader.readAsArrayBuffer(file);
             }
+            
+            // --- ADD EVENT LISTENERS FOR NEW ELEMENTS ---
+            infillSlider.addEventListener('input', () => {
+                infillValueSpan.textContent = infillSlider.value;
+                runQuoteCalculation();
+            });
+            qualitySelect.addEventListener('change', runQuoteCalculation);
 
+            // Existing listeners
             fileUpload.addEventListener('change', runQuoteCalculation);
             materialSelect.addEventListener('change', runQuoteCalculation);
         });
