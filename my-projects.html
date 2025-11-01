@@ -46,7 +46,6 @@
             return `<span class="badge ${badgeClass}">${status}</span>`;
         }
 
-
         function loadUserProjects(userId) {
             db.collection("projects").where("userId", "==", userId).orderBy("submittedAt", "desc").get()
                 .then(snapshot => {
@@ -69,11 +68,26 @@
                             actionButtonsHtml += `<a href="invoice.html?id=${projectId}" target="_blank" class="btn btn-sm btn-success ms-2"><i class="bi bi-receipt-cutoff me-1"></i> View Invoice</a>`;
                         }
 
-                        // --- THIS IS THE UPDATED LOGIC ---
-                        // Check for the final total from the invoice, otherwise use the original quoted price.
-                        const finalPrice = project.invoiceDetails?.finalTotal ?? project.quotedPrice;
-                        const priceHtml = finalPrice ? `<h5 class="mb-1 text-primary fw-bold">₹${parseFloat(finalPrice).toFixed(2)}</h5>` : `<h5 class="mb-1">${project.projectName}</h5>`;
-                        // --- END OF UPDATED LOGIC ---
+                        // --- NEW, ENHANCED PRICING DISPLAY LOGIC ---
+                        let priceHtml = '';
+                        const originalPrice = parseFloat(project.quotedPrice).toFixed(2);
+                        const finalPrice = project.invoiceDetails?.finalTotal !== undefined ? parseFloat(project.invoiceDetails.finalTotal).toFixed(2) : null;
+
+                        if (finalPrice !== null && finalPrice !== originalPrice) {
+                            // If a final price exists and it's different, show both
+                            priceHtml = `
+                                <div class="d-flex align-items-center">
+                                    <h5 class="mb-0 text-primary fw-bold me-2">₹${finalPrice}</h5>
+                                    <h6 class="mb-0 text-muted"><del>₹${originalPrice}</del></h6>
+                                </div>`;
+                        } else if (originalPrice > 0) {
+                            // Otherwise, just show the original price
+                            priceHtml = `<h5 class="mb-1 text-primary fw-bold">₹${originalPrice}</h5>`;
+                        } else {
+                            // Fallback for projects without a price yet
+                            priceHtml = `<h5 class="mb-1">${project.projectName}</h5>`;
+                        }
+                        // --- END OF NEW LOGIC ---
 
                         html += `
                             <div class="list-group-item list-group-item-action flex-column align-items-start mb-3 border-0 shadow-sm rounded">
