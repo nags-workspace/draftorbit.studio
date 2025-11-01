@@ -38,30 +38,34 @@ document.addEventListener('DOMContentLoaded', () => {
     
     console.log("DOM loaded. Starting to load components...");
 
-    // --- 1. Load Navbar (Optional, but good practice) ---
-    // If a page doesn't have a navbar-placeholder, it will just log a warning.
-    loadHTML('navbar.html', 'navbar-placeholder')
-        .then(() => {
-            console.log("Navbar loaded successfully.");
-            // You can add navbar-specific JS initialization here if needed.
-        })
-        .catch(error => {
-            console.warn("Could not load navbar.html. This may be expected on some pages.", error);
-        });
+    // Create promises for loading the navbar and footer
+    const loadNavbarPromise = loadHTML('navbar.html', 'navbar-placeholder');
+    const loadFooterPromise = loadHTML('footer.html', 'footer-placeholder');
 
-    // --- 2. Load Footer and THEN Initialize the AI Assistant ---
-    // This is the critical part. The assistant JS needs the footer's HTML to exist first.
-    loadHTML('footer.html', 'footer-placeholder')
+    // Wait for both the navbar and footer to finish loading
+    Promise.all([loadNavbarPromise, loadFooterPromise])
         .then(() => {
-            console.log("Footer loaded. Initializing Gemini assistant...");
+            console.log("Navbar and Footer loaded successfully.");
             
-            // Defensive check: ensure the initializeAssistant function actually exists before calling it.
-            // This prevents errors if assistant.js fails to load.
+            // Now that all HTML components are loaded, initialize other scripts that depend on them.
+            
+            // Initialize the Authentication UI (from auth.js)
+            // This needs the navbar to be loaded first.
+            if (typeof initializeAuthUI === 'function') {
+                initializeAuthUI();
+            } else {
+                 console.warn("initializeAuthUI function not found. This might be expected on standalone auth pages.");
+            }
+
+            // Initialize the AI Assistant (from assistant.js)
+            // This needs the footer (which contains the assistant HTML) to be loaded first.
             if (typeof initializeAssistant === 'function') {
                 initializeAssistant();
             } else {
-                console.error("CRITICAL: initializeAssistant function not found! Check that assistant.js is included correctly BEFORE main.js in your HTML file.");
+                console.error("CRITICAL: initializeAssistant function not found! Check that assistant.js is included correctly in your HTML files.");
             }
         })
-        .catch(error => console.error("CRITICAL ERROR: Could not load footer.html. The assistant cannot be initialized.", error));
+        .catch(error => {
+            console.error("An error occurred while loading HTML components:", error);
+        });
 });

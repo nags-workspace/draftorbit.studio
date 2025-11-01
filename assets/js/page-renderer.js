@@ -7,17 +7,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Get the page ID from the URL (e.g., ?id=1)
   const urlParams = new URLSearchParams(window.location.search);
-  const pageId = parseInt(urlParams.get('id'));
+  const pageIdStr = urlParams.get('id');
 
   // Find the correct page data from our "database"
-  const pageData = pagesData.find(page => page.id === pageId);
+  // The find function will handle if pageId is null or not a number.
+  const pageData = pagesData.find(page => page.id === pageIdStr);
 
   // Check if we found a matching page
   if (pageData) {
     // We found it! Now, inject the data into the page.
     document.title = `${pageData.title} - DraftOrbit Studio`;
     titleElement.textContent = pageData.title;
-    contentElement.innerHTML = pageData.content;
+    
+    // Use marked.js to parse Markdown content into HTML
+    contentElement.innerHTML = marked.parse(pageData.content);
   } else {
     // We didn't find a page with that ID. Show a "Not Found" error.
     document.title = '404 Not Found - DraftOrbit Studio';

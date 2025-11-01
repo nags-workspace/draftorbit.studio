@@ -28,10 +28,11 @@ function initializeAuthUI() {
     const loggedOutView = document.getElementById('logged-out-view');
     const userEmailDisplay = document.getElementById('user-email-display');
     const logoutButton = document.getElementById('logout-button');
+    const authDivider = document.getElementById('auth-divider'); // Get the divider
 
     // If the navbar elements aren't on the page, we can't do anything.
-    if (!loggedInView || !loggedOutView) {
-        console.warn("Auth UI elements not found. Not an auth-enabled page or navbar failed to load.");
+    if (!loggedInView || !loggedOutView || !authDivider) {
+        // This is a warning, not an error. Some pages like admin-login might not have the main navbar.
         return;
     }
 
@@ -41,7 +42,7 @@ function initializeAuthUI() {
         auth.signOut().then(() => {
             console.log('User signed out.');
             // Redirect to home page for a clean user experience after logout.
-            window.location.href = '/index.html';
+            window.location.href = 'index.html';
         });
     });
 
@@ -52,12 +53,19 @@ function initializeAuthUI() {
             console.log("Auth state changed: User is LOGGED IN", user.email);
             loggedOutView.classList.add('d-none'); // Hide "Login/Sign Up"
             loggedInView.classList.remove('d-none'); // Show "Account" dropdown
-            userEmailDisplay.textContent = user.email;
+            authDivider.classList.remove('d-none'); // Show divider
+            if (userEmailDisplay) {
+                userEmailDisplay.textContent = user.email;
+            }
         } else {
             // --- USER IS LOGGED OUT ---
             console.log("Auth state changed: User is LOGGED OUT");
             loggedOutView.classList.remove('d-none'); // Show "Login/Sign Up"
             loggedInView.classList.add('d-none'); // Hide "Account" dropdown
+            authDivider.classList.add('d-none'); // Hide divider
         }
     });
 }
+
+// Call the initialization function. This script is loaded on every page with the navbar.
+initializeAuthUI();
